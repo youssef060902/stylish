@@ -793,8 +793,8 @@
                   $original_price = $product['prix'] / (1 - $product['discount'] / 100);
                   ?>
                   <div class="col mb-4"> 
-                    <div class="product-card position-relative" onclick="displayProductModal(<?php echo $product['id']; ?>)">
-                      <div class="card-img">
+                    <div class="product-card position-relative">
+                      <div class="card-img" onmouseenter="displayProductModal(<?php echo $product['id']; ?>)" onmouseleave="hideProductModal()">
                         <?php if ($product['image_url']): ?>
                           <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
                         <?php else: ?>
@@ -897,8 +897,8 @@
                   }
                   ?>
                   <div class="col mb-4"> 
-                    <div class="product-card position-relative" onclick="displayProductModal(<?php echo $product['id']; ?>)">
-                      <div class="card-img">
+                    <div class="product-card position-relative">
+                      <div class="card-img" onmouseenter="displayProductModal(<?php echo $product['id']; ?>)" onmouseleave="hideProductModal()">
                         <?php if ($product['image_url']): ?>
                           <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
                         <?php else: ?>
@@ -948,98 +948,134 @@
 <script>
   let currentProductId = null;
   let selectedSize = null;
+  let showModalTimeout = null;
+  let hideModalTimeout = null;
+  let productDetailsModalInstance = null;
 
   function getCurrentProductId() {
       return currentProductId;
   }
 
   function displayProductModal(id) {
+      // Clear any pending hide timeouts
+      if (hideModalTimeout) {
+          clearTimeout(hideModalTimeout);
+          hideModalTimeout = null;
+      }
+
+      // If the modal is already showing for the same product, do nothing
+      if (productDetailsModalInstance && productDetailsModalInstance._isShown && currentProductId === id) {
+          return;
+      }
+
+      // Clear any pending show timeouts to prevent multiple modals opening
+      if (showModalTimeout) {
+          clearTimeout(showModalTimeout);
+      }
+
       currentProductId = id;
       selectedSize = null;
 
-      fetch(`get_product_details.php?id=${id}`)
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  const product = data.data;
+      showModalTimeout = setTimeout(() => {
+          fetch(`get_product_details.php?id=${id}`)
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      const product = data.data;
 
-                  // Mise à jour des détails du produit
-                  document.getElementById('details_nom').textContent = product.nom;
-                  document.getElementById('details_marque').textContent = product.marque;
-                  document.getElementById('details_categorie').textContent = product.catégorie;
-                  document.getElementById('details_type').textContent = product.type;
-                  document.getElementById('details_couleur').textContent = product.couleur;
-                  document.getElementById('details_description').textContent = product.description;
+                      // Mise à jour des détails du produit
+                      document.getElementById('details_nom').textContent = product.nom;
+                      document.getElementById('details_marque').textContent = product.marque;
+                      document.getElementById('details_categorie').textContent = product.catégorie;
+                      document.getElementById('details_type').textContent = product.type;
+                      document.getElementById('details_couleur').textContent = product.couleur;
+                      document.getElementById('details_description').textContent = product.description;
 
-                  // Gestion des prix
-                  const prixPromo = parseFloat(product.prix);
-                  const discount = parseFloat(product.discount);
-                  
-                  document.getElementById('details_prix_promo').textContent = `${prixPromo.toFixed(2)} DT`;
+                      // Gestion des prix
+                      const prixPromo = parseFloat(product.prix);
+                      const discount = parseFloat(product.discount);
+                      
+                      document.getElementById('details_prix_promo').textContent = `${prixPromo.toFixed(2)} DT`;
 
-                  if (discount > 0) {
-                      const prixOriginal = prixPromo / (1 - discount / 100);
-                      document.getElementById('details_promotion_badge').style.display = 'inline-flex';
-                      document.getElementById('details_prix_original').textContent = `${prixOriginal.toFixed(2)} DT`;
-                      document.getElementById('details_prix_original').style.display = 'inline'; // S'assurer qu'il est visible
-                  } else {
-                      document.getElementById('details_promotion_badge').style.display = 'none';
-                      document.getElementById('details_prix_original').textContent = ''; // Vider le contenu
-                      document.getElementById('details_prix_original').style.display = 'none'; // Masquer l'élément
-                  }
+                      if (discount > 0) {
+                          const prixOriginal = prixPromo / (1 - discount / 100);
+                          document.getElementById('details_promotion_badge').style.display = 'inline-flex';
+                          document.getElementById('details_prix_original').textContent = `${prixOriginal.toFixed(2)} DT`;
+                          document.getElementById('details_prix_original').style.display = 'inline'; // S'assurer qu'il est visible
+                      } else {
+                          document.getElementById('details_promotion_badge').style.display = 'none';
+                          document.getElementById('details_prix_original').textContent = ''; // Vider le contenu
+                          document.getElementById('details_prix_original').style.display = 'none'; // Masquer l'élément
+                      }
 
-                  // Gestion des images
-                  const carouselInner = document.getElementById('productDetailsCarouselInner');
-                  carouselInner.innerHTML = '';
+                      // Gestion des images
+                      const carouselInner = document.getElementById('productDetailsCarouselInner');
+                      carouselInner.innerHTML = '';
 
-                  if (product.images && product.images.length > 0) {
-                      product.images.forEach((image, index) => {
-                          const carouselItem = document.createElement('div');
-                          carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
-                          carouselItem.innerHTML = `
-                              <img src="${image}" class="d-block w-100" alt="${product.nom}">
+                      if (product.images && product.images.length > 0) {
+                          product.images.forEach((image, index) => {
+                              const carouselItem = document.createElement('div');
+                              carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+                              carouselItem.innerHTML = `
+                                  <img src="${image}" class="d-block w-100" alt="${product.nom}">
+                              `;
+                              carouselInner.appendChild(carouselItem);
+                          });
+                      } else {
+                          carouselInner.innerHTML = `
+                              <div class="carousel-item active">
+                                  <div class="d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
+                                      <i class="fas fa-image fa-5x text-muted"></i>
+                                  </div>
+                              </div>
                           `;
-                          carouselInner.appendChild(carouselItem);
-                      });
+                      }
+
+                      // Gestion des pointures
+                      const sizesContainer = document.getElementById('details_pointures');
+                      sizesContainer.innerHTML = '';
+
+                      if (product.pointures && product.pointures.length > 0) {
+                          product.pointures.forEach(pointure => {
+                              const sizeBadge = document.createElement('div');
+                              sizeBadge.className = 'size-badge';
+                              sizeBadge.innerHTML = `<span>${pointure}</span>`;
+                              sizeBadge.onclick = () => selectSize(sizeBadge, pointure);
+                              sizesContainer.appendChild(sizeBadge);
+                          });
+                      } else {
+                          sizesContainer.innerHTML = '<span class="text-muted">Aucune pointure disponible</span>';
+                      }
+
+                      // Vérifier si le produit est dans les favoris
+                      checkFavoriteStatus(id);
+
+                      // Afficher la modal
+                      const modalElement = document.getElementById('productDetailsModal');
+                      productDetailsModalInstance = new bootstrap.Modal(modalElement);
+                      productDetailsModalInstance.show();
+
                   } else {
-                      carouselInner.innerHTML = `
-                          <div class="carousel-item active">
-                              <div class="d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
-                                  <i class="fas fa-image fa-5x text-muted"></i>
-        </div>
-      </div>
-                      `;
+                      console.error('Erreur lors du chargement des détails du produit:', data.message);
                   }
+              })
+              .catch(error => {
+                  console.error('Erreur:', error);
+              });
+      }, 300); // 300ms delay before showing modal
+  }
 
-                  // Gestion des pointures
-                  const sizesContainer = document.getElementById('details_pointures');
-                  sizesContainer.innerHTML = '';
-
-                  if (product.pointures && product.pointures.length > 0) {
-                      product.pointures.forEach(pointure => {
-                          const sizeBadge = document.createElement('div');
-                          sizeBadge.className = 'size-badge';
-                          sizeBadge.innerHTML = `<span>${pointure}</span>`;
-                          sizeBadge.onclick = () => selectSize(sizeBadge, pointure);
-                          sizesContainer.appendChild(sizeBadge);
-                      });
-                  } else {
-                      sizesContainer.innerHTML = '<span class="text-muted">Aucune pointure disponible</span>';
-                  }
-
-                  // Vérifier si le produit est dans les favoris
-                  checkFavoriteStatus(id);
-
-                  // Afficher la modal
-                  const productDetailsModal = new bootstrap.Modal(document.getElementById('productDetailsModal'));
-                  productDetailsModal.show();
-              } else {
-                  console.error('Erreur lors du chargement des détails du produit:', data.message);
-              }
-          })
-          .catch(error => {
-              console.error('Erreur:', error);
-          });
+  function hideProductModal() {
+      if (showModalTimeout) {
+          clearTimeout(showModalTimeout);
+          showModalTimeout = null;
+      }
+      // Only hide if the modal is currently shown and the mouse is truly leaving
+      hideModalTimeout = setTimeout(() => {
+          if (productDetailsModalInstance) {
+              productDetailsModalInstance.hide();
+          }
+      }, 500); // 500ms delay before hiding modal
   }
 
   function selectSize(sizeBadge, pointure) {
@@ -1258,6 +1294,36 @@ document.addEventListener('DOMContentLoaded', function() {
     var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
     var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
         return new bootstrap.Dropdown(dropdownToggleEl);
+    });
+
+    const modalElement = document.getElementById('productDetailsModal');
+    // Initialiser l'instance de la modale une seule fois au chargement de la page
+    productDetailsModalInstance = new bootstrap.Modal(modalElement, {
+        keyboard: true,
+        focus: true
+    });
+
+    // Ajouter les écouteurs d'événements globaux pour la modale
+    modalElement.addEventListener('mouseleave', () => {
+        if (showModalTimeout) {
+            clearTimeout(showModalTimeout);
+            showModalTimeout = null;
+        }
+        if (hideModalTimeout) {
+            clearTimeout(hideModalTimeout);
+        }
+        hideModalTimeout = setTimeout(() => {
+            if (productDetailsModalInstance) {
+                productDetailsModalInstance.hide();
+            }
+        }, 500); // Même délai que celui défini dans hideProductModal
+    });
+
+    modalElement.addEventListener('mouseenter', () => {
+        if (hideModalTimeout) {
+            clearTimeout(hideModalTimeout);
+            hideModalTimeout = null;
+        }
     });
 });
 </script>
