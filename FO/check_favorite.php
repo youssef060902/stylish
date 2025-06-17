@@ -36,7 +36,7 @@ if ($conn->connect_error) {
 }
 
 try {
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM favoris WHERE id_utilisateur = ? AND id_produit = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM favoris WHERE id_user = ? AND id_produit = ?");
     $stmt->bind_param("ii", $userId, $productId);
     $stmt->execute();
     $stmt->bind_result($count);

@@ -39,7 +39,7 @@ if ($conn->connect_error) {
 
 try {
     // Vérifier si le produit est déjà dans les favoris
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM favoris WHERE id_utilisateur = ? AND id_produit = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM favoris WHERE id_user = ? AND id_produit = ?");
     $stmt->bind_param("ii", $userId, $productId);
     $stmt->execute();
     $stmt->bind_result($count);
@@ -48,7 +48,7 @@ try {
 
     if ($count > 0) {
         // Supprimer des favoris
-        $stmt = $conn->prepare("DELETE FROM favoris WHERE id_utilisateur = ? AND id_produit = ?");
+        $stmt = $conn->prepare("DELETE FROM favoris WHERE id_user = ? AND id_produit = ?");
         $stmt->bind_param("ii", $userId, $productId);
         $stmt->execute();
         $stmt->close();
@@ -57,7 +57,7 @@ try {
         $response['message'] = 'Produit retiré des favoris.';
     } else {
         // Ajouter aux favoris
-        $stmt = $conn->prepare("INSERT INTO favoris (id_utilisateur, id_produit) VALUES (?, ?)");
+        $stmt = $conn->prepare("INSERT INTO favoris (id_user, id_produit) VALUES (?, ?)");
         $stmt->bind_param("ii", $userId, $productId);
         $stmt->execute();
         $stmt->close();

@@ -273,8 +273,25 @@ if ($product['discount'] > 0) {
             alert('Produit ajouté au panier !');
         }
         function toggleFavorite(productId) {
-            // Implémenter la logique d'ajout aux favoris
-            alert('Produit ajouté aux favoris !');
+            fetch('toggle_favorite.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productId: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // Ici, tu peux aussi changer l'icône ou le texte du bouton selon data.isFavorite
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erreur lors de la mise à jour des favoris.');
+            });
         }
         function submitReview() {
             const form = document.getElementById('reviewForm');
@@ -286,13 +303,15 @@ if ($product['discount'] > 0) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    alert(data.message || 'Avis ajouté avec succès !');
+                    form.reset();
                     location.reload();
                 } else {
-                    alert(data.message);
+                    alert(data.message || 'Erreur lors de l\'ajout de l\'avis.');
                 }
             })
             .catch(error => {
-                alert('Une erreur est survenue');
+                alert('Une erreur est survenue lors de l\'ajout de l\'avis.');
             });
         }
     </script>
