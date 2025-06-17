@@ -4,7 +4,7 @@ session_start();
 // Configuration OAuth2
 $client_id = '906846133961-b07e4jjvn870fjpeaalhctrgtu9q2ooc.apps.googleusercontent.com';
 $client_secret = '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';
-$redirect_uri = 'http://localhost/stylish-1.0.0/stylish-1.0.0/FO/index.php';
+$redirect_uri = 'http://localhost/stylish/FO/index.php';
 
 if (isset($_GET['code'])) {
     // Échanger le code contre un token d'accès

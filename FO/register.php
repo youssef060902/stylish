@@ -27,7 +27,7 @@ $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 $phone = $_POST['phone'] ?? '';
 $adresse = $_POST['adresse'] ?? '';
-$image = $_FILES['image'] ?? null;
+$image = $_FILES['profile_image'] ?? null;
 
 // Validation simple (à compléter selon tes besoins)
 if (!$prenom || !$nom || !$genre || !$date_naissance || !$email || !$password || !$phone || !$adresse) {
@@ -77,15 +77,65 @@ $password_plain = $password;
 
 // Gestion de l'image
 $image_path = null;
-if ($image && $image['tmp_name'] && $image['size'] > 0) {
-    $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
-    $image_name = uniqid('user_') . '.' . $ext;
-    $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/img/'; // Chemin absolu vers C:/xampp/htdocs/img
-    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-    $full_path = $upload_dir . $image_name;
-    move_uploaded_file($image['tmp_name'], $full_path);
-    // On stocke l'URL complète dans la base
-    $image_path = 'http://localhost/img/' . $image_name;
+$upload_success = false;
+$upload_error_message = '';
+
+if ($image && isset($image['tmp_name']) && $image['tmp_name'] && $image['size'] > 0) {
+    if ($image['error'] !== UPLOAD_ERR_OK) {
+        $upload_error_message = 'Erreur lors de l\'upload du fichier : Code ' . $image['error'];
+        // Ajoutez des messages d'erreur spécifiques pour les codes d'erreur PHP
+        switch ($image['error']) {
+            case UPLOAD_ERR_INI_SIZE:
+                $upload_error_message .= ' (La taille du fichier téléchargé excède la directive upload_max_filesize dans php.ini). ';
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+                $upload_error_message .= ' (La taille du fichier téléchargé excède la directive MAX_FILE_SIZE spécifiée dans le formulaire HTML). ';
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                $upload_error_message .= ' (Le fichier n\'a été que partiellement téléchargé). ';
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $upload_error_message .= ' (Aucun fichier n\'a été téléchargé). ';
+                break;
+            case UPLOAD_ERR_NO_TMP_DIR:
+                $upload_error_message .= ' (Un dossier temporaire est manquant). ';
+                break;
+            case UPLOAD_ERR_CANT_WRITE:
+                $upload_error_message .= ' (Échec de l\'écriture du fichier sur le disque). ';
+                break;
+            case UPLOAD_ERR_EXTENSION:
+                $upload_error_message .= ' (Une extension PHP a arrêté l\'envoi du fichier). ';
+                break;
+        }
+    } else {
+        $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
+        $image_name = uniqid('user_') . '.' . $ext;
+        $upload_dir = $_SERVER['DOCUMENT_ROOT'] . '/img/'; // Chemin absolu vers C:/xampp/htdocs/img/
+        
+        // Créer le répertoire si inexistant
+        if (!is_dir($upload_dir)) {
+            if (!mkdir($upload_dir, 0777, true)) {
+                $upload_error_message = 'Impossible de créer le répertoire d\'upload : ' . $upload_dir;
+            }
+        }
+
+        if (empty($upload_error_message)) {
+            $full_path = $upload_dir . $image_name;
+            if (move_uploaded_file($image['tmp_name'], $full_path)) {
+                $image_path = 'http://localhost/img/' . $image_name;
+                $upload_success = true;
+            } else {
+                $upload_error_message = 'Échec du déplacement du fichier téléchargé. Vérifiez les permissions du dossier et le chemin : ' . $full_path;
+            }
+        }
+    }
+} else {
+    $upload_error_message = 'Aucun fichier image n\'a été téléchargé ou le fichier est vide.';
+    if ($image) {
+        $upload_error_message .= ' $_FILES[\'profile_image\'] est présent mais pas valide. Info: ' . json_encode($image);
+    } else {
+        $upload_error_message .= ' $_FILES[\'profile_image\'] est null.';
+    }
 }
 
 // Insertion dans la base
@@ -136,9 +186,21 @@ if ($stmt->execute()) {
         echo json_encode(['success' => false, 'message' => "Erreur lors de l'envoi de l'email : " . $e->getMessage()]);
         exit;
     }
-    echo json_encode(['success' => true, 'message' => "Inscription réussie"]);
+    echo json_encode([
+        'success' => true,
+        'message' => "Inscription réussie",
+        'upload_status' => $upload_success,
+        'upload_message' => $upload_error_message,
+        'image_path_saved' => $image_path
+    ]);
 } else {
-    echo json_encode(['success' => false, 'message' => "Erreur lors de l'inscription"]);
+    echo json_encode([
+        'success' => false,
+        'message' => "Erreur lors de l'inscription",
+        'upload_status' => $upload_success,
+        'upload_message' => $upload_error_message,
+        'image_path_saved' => $image_path
+    ]);
 }
 $stmt->close();
 $conn->close();
