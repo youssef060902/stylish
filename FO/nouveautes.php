@@ -540,7 +540,7 @@
       $brands = $stmt_brands->fetchAll(PDO::FETCH_COLUMN);
 
       // Récupérer les pointures disponibles
-      $stmt_sizes = $pdo->query("SELECT pointure FROM pointures ORDER BY pointure");
+      $stmt_sizes = $pdo->query("SELECT DISTINCT p.pointure FROM pointures p JOIN pointure_produit pp ON p.id = pp.id_pointure ORDER BY p.pointure");
       $sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
 
   } catch(PDOException $e) {
