@@ -1,5 +1,5 @@
 <?php
-// Même logique de récupération des filtres que nouveautes.php
+// Même logique de récupération des filtres que nouveautes.php, mais uniquement pour la catégorie 'homme'
 $host = 'localhost';
 $dbname = 'stylish';
 $username = 'root';
@@ -10,34 +10,32 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("SET NAMES utf8");
 
-    // Récupérer les catégories uniques
-    $stmt_categories = $pdo->query("SELECT DISTINCT catégorie FROM produit WHERE id_promotion IS NOT NULL ORDER BY catégorie");
-    $categories = $stmt_categories->fetchAll(PDO::FETCH_COLUMN);
-
-    // Récupérer les types uniques
-    $stmt_types = $pdo->query("SELECT DISTINCT type FROM produit WHERE id_promotion IS NOT NULL ORDER BY type");
+    // Récupérer les types uniques pour enfant
+    $stmt_types = $pdo->query("SELECT DISTINCT type FROM produit WHERE catégorie = 'enfant' ORDER BY type");
     $types = $stmt_types->fetchAll(PDO::FETCH_COLUMN);
 
-    // Récupérer les couleurs uniques
-    $stmt_colors = $pdo->query("SELECT DISTINCT couleur FROM produit WHERE id_promotion IS NOT NULL ORDER BY couleur");
+    // Récupérer les couleurs uniques pour enfant
+    $stmt_colors = $pdo->query("SELECT DISTINCT couleur FROM produit WHERE catégorie = 'enfant' ORDER BY couleur");
     $colors = $stmt_colors->fetchAll(PDO::FETCH_COLUMN);
 
-    // Récupérer les marques uniques
-    $stmt_brands = $pdo->query("SELECT DISTINCT marque FROM produit WHERE id_promotion IS NOT NULL ORDER BY marque");
+    // Récupérer les marques uniques pour enfant
+    $stmt_brands = $pdo->query("SELECT DISTINCT marque FROM produit WHERE catégorie = 'enfant' ORDER BY marque");
     $brands = $stmt_brands->fetchAll(PDO::FETCH_COLUMN);
 
-    // Récupérer les pointures disponibles (jointure sur pointure_produit)
-    $stmt_sizes = $pdo->query("SELECT DISTINCT p.pointure FROM pointures p JOIN pointure_produit pp ON p.id = pp.id_pointure JOIN produit pr ON pr.id = pp.id_produit WHERE pr.id_promotion IS NOT NULL ORDER BY p.pointure");
+    // Récupérer les pointures disponibles pour enfant (jointure sur pointure_produit)
+    $stmt_sizes = $pdo->query("SELECT DISTINCT p.pointure FROM pointures p JOIN pointure_produit pp ON p.id = pp.id_pointure JOIN produit pr ON pr.id = pp.id_produit WHERE pr.catégorie = 'enfant' ORDER BY p.pointure");
     $sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
 
 } catch(PDOException $e) {
     echo "Erreur de connexion à la base de données : " . $e->getMessage();
-    $categories = [];
     $types = [];
     $colors = [];
     $brands = [];
     $sizes = [];
 }
+
+// Juste avant le formulaire :
+$categories = ['enfant'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -45,7 +43,7 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php include 'header.php'; ?>
-  <title>Promotions</title>
+  <title>Chaussures Enfants</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Google Fonts -->
@@ -194,14 +192,6 @@ try {
       position: relative;
       z-index: 1;
     }
-  </style>
-  <link rel="stylesheet" href="css/vendor.css">
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Source+Sans+Pro:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/all.min.css">
-  <style>
     /* Styles pour la modal de détails du produit (copié de nouveautes.php) */
     .product-details-modal .modal-content {
       border: none;
@@ -424,6 +414,18 @@ try {
       transform: rotate(90deg);
     }
   </style>
+
+<link rel="stylesheet" href="css/vendor.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    
+  </style>
+  <link rel="stylesheet" href="css/all.min.css"
 </head>
 <body>
 <?php /* SVG caché pour les icônes, structure, modale, etc. identiques à nouveautes.php */ ?>
@@ -443,27 +445,13 @@ try {
 <section id="promotions-products" class="product-store py-2 my-2 py-md-5 my-md-5 pt-0">
   <div class="container-md">
     <div class="display-header d-flex align-items-center justify-content-center">
-      <h2 class="section-title-center text-uppercase">Liste des chaussures en promotions</h2>
+      <h2 class="section-title-center text-uppercase">Liste des chaussures enfants</h2>
     </div>
     <div class="row">
       <div class="col-md-3">
         <div class="filter-sidebar">
           <h4 class="mb-3">Filtres</h4>
           <form id="filterForm">
-            <!-- Catégories -->
-            <div class="mb-3">
-              <h5>Catégorie</h5>
-              <div id="category-filters">
-                <?php foreach ($categories as $category): ?>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($category); ?>" id="cat_<?php echo htmlspecialchars($category); ?>" name="categories[]">
-                    <label class="form-check-label" for="cat_<?php echo htmlspecialchars($category); ?>">
-                      <?php echo htmlspecialchars($category); ?>
-                    </label>
-                  </div>
-                <?php endforeach; ?>
-              </div>
-            </div>
             <!-- Types -->
             <div class="mb-3">
               <h5>Type</h5>
@@ -588,7 +576,7 @@ try {
       }
       params.set('page', currentPage);
 
-      fetch(`get_filtered_promotions.php?${params.toString()}`)
+      fetch(`get_filtered_enfants.php?${params.toString()}`)
           .then(response => response.json())
           .then(data => {
               if (data.success) {

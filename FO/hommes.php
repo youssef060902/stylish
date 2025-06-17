@@ -43,7 +43,7 @@ $categories = ['homme'];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php include 'header.php'; ?>
-  <title>Chaussures Homme</title>
+  <title>Chaussures Hommes</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Google Fonts -->
@@ -445,7 +445,7 @@ $categories = ['homme'];
 <section id="promotions-products" class="product-store py-2 my-2 py-md-5 my-md-5 pt-0">
   <div class="container-md">
     <div class="display-header d-flex align-items-center justify-content-center">
-      <h2 class="section-title-center text-uppercase">Liste des produits hommes</h2>
+      <h2 class="section-title-center text-uppercase">Liste des chaussures hommes</h2>
     </div>
     <div class="row">
       <div class="col-md-3">
