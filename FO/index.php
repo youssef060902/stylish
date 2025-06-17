@@ -521,8 +521,17 @@
 </head>
 
 <body>
-
-
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="heart" viewBox="0 0 24 24">
+      <path d="M12 21.35l-1.84-1.66C4.01 15.36 2 13.06 2 10.11 2 6.7 4.7 4 8.11 4c1.98 0 3.91.96 5.12 2.5l.77.93.77-.93C15.9 4.96 17.82 4 19.89 4 23.3 4 26 6.7 26 10.11c0 2.95-2.01 5.25-8.16 9.58L12 21.35z"/>
+    </symbol>
+    <symbol id="heart-outline" viewBox="0 0 24 24">
+      <path d="M16.5 3C14.77 3 13.1 3.81 12 5.09 10.9 3.81 9.23 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.31C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.71l-.1-.09-.1-.09c-4.9-4.47-7.9-7.14-7.9-10.03 0-2.31 1.76-4.17 3.93-4.17 1.81 0 3.42 1.05 4.17 2.68.75-1.63 2.36-2.68 4.17-2.68 2.17 0 3.93 1.86 3.93 4.17 0 2.89-3 5.56-7.9 10.03l-.1.09-.1.09-.1.09-.1.09z"/>
+    </symbol>
+    <symbol id="tag" viewBox="0 0 24 24">
+      <path d="M20 12l-1.41-1.41L12 17.17l-6.59-6.58L4 12l8 8 8-8zM12 4l-8 8 8 8 8-8-8-8z"/>
+    </symbol>
+  </svg>
 
   <!-- Section À propos -->
   <section id="about" class="about-section-final">
@@ -821,6 +830,7 @@
       </div>
     </div>
   </section>
+  
   <section id="collection-products" class="py-2 my-2 py-md-5 my-md-5">
     <div class="container-md">
       <div class="row">
@@ -854,155 +864,75 @@
       <div class="display-header d-flex align-items-center justify-content-between">
         <h2 class="section-title text-uppercase">Latest Products</h2>
         <div class="btn-right">
-          <a href="index.html" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
+          <a href="products.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
         </div>
       </div>
       <div class="product-content padding-small">
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
-          <div class="col mb-4 mb-3">
-            <div class="product-card position-relative">
-              <div class="card-img">
-                <img src="images/card-item6.jpg" alt="product-item" class="product-image img-fluid">
-                <div class="cart-concern position-absolute d-flex justify-content-center">
-                  <div class="cart-button d-flex gap-2 justify-content-center align-items-center">
-                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modallong">
-                      <svg class="shopping-carriage">
-                        <use xlink:href="#shopping-carriage"></use>
-                      </svg>
-                    </button>
-                    <button type="button" class="btn btn-light" data-bs-target="#modaltoggle" data-bs-toggle="modal">
-                      <svg class="quick-view">
-                        <use xlink:href="#quick-view"></use>
-                      </svg>
-                    </button>
+          <?php
+          // Connexion à la base de données (utiliser les mêmes identifiants que la section promotion)
+          $host = 'localhost';
+          $dbname = 'stylish';
+          $username = 'root';
+          $password = '';
+
+          try {
+              $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+              $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+              $pdo->exec("SET NAMES utf8");
+
+              // Récupération des 5 derniers produits ajoutés
+              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom,
+                                  (SELECT URL_Image FROM images_produits WHERE id_produit = p.id LIMIT 1) as image_url
+                                  FROM produit p
+                                  LEFT JOIN promotion pr ON p.id_promotion = pr.id
+                                  ORDER BY p.date_ajout DESC
+                                  LIMIT 5");
+              $latest_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+              foreach ($latest_products as $product) {
+                  $original_price = $product['prix'];
+                  if ($product['discount'] > 0) {
+                      $original_price = $product['prix'] / (1 - $product['discount'] / 100);
+                  }
+                  ?>
+                  <div class="col mb-4"> 
+                    <div class="product-card position-relative" onclick="displayProductModal(<?php echo $product['id']; ?>)">
+                      <div class="card-img">
+                        <?php if ($product['image_url']): ?>
+                          <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
+                        <?php else: ?>
+                          <img src="images/no-image.jpg" alt="No image" class="product-image img-fluid">
+                        <?php endif; ?>
+                        
+                        <?php if ($product['discount'] > 0): ?>
+                          <div class="discount-badge position-absolute top-0 end-0 m-2">
+                            -<?php echo $product['discount']; ?>%
+                          </div>
+                        <?php endif; ?>
+                      </div>
+                      <div class="card-detail d-flex justify-content-between align-items-center mt-3">
+                        <h3 class="card-title fs-6 fw-normal m-0">
+                          <a href="product-details.php?id=<?php echo $product['id']; ?>"><?php echo htmlspecialchars($product['nom']); ?></a>
+                        </h3>
+                        <div class="price-container">
+                          <span class="card-price fw-bold"><?php echo number_format($product['prix'], 2); ?> DT</span>
+                          <?php if ($product['discount'] > 0): ?>
+                            <span class="original-price text-decoration-line-through text-muted ms-2"><?php echo number_format($original_price, 2); ?> DT</span>
+                          <?php endif; ?>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <!-- cart-concern -->
-              </div>
-              <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                <h3 class="card-title fs-6 fw-normal m-0">
-                  <a href="index.html">Running shoes for men</a>
-                </h3>
-                <span class="card-price fw-bold">$99</span>
-              </div>
-            </div>
-          </div>
-          <div class="col mb-4 mb-3">
-            <div class="product-card position-relative">
-              <div class="card-img">
-                <img src="images/card-item7.jpg" alt="product-item" class="product-image img-fluid">
-                <div class="cart-concern position-absolute d-flex justify-content-center">
-                  <div class="cart-button d-flex gap-2 justify-content-center align-items-center">
-                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modallong">
-                      <svg class="shopping-carriage">
-                        <use xlink:href="#shopping-carriage"></use>
-                      </svg>
-                    </button>
-                    <button type="button" class="btn btn-light" data-bs-target="#modaltoggle" data-bs-toggle="modal">
-                      <svg class="quick-view">
-                        <use xlink:href="#quick-view"></use>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <!-- cart-concern -->
-              </div>
-              <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                <h3 class="card-title fs-6 fw-normal m-0">
-                  <a href="index.html">Running shoes for men</a>
-                </h3>
-                <span class="card-price fw-bold">$99</span>
-              </div>
-            </div>
-          </div>
-          <div class="col mb-4 mb-3">
-            <div class="product-card position-relative">
-              <div class="card-img">
-                <img src="images/card-item8.jpg" alt="product-item" class="product-image img-fluid">
-                <div class="cart-concern position-absolute d-flex justify-content-center">
-                  <div class="cart-button d-flex gap-2 justify-content-center align-items-center">
-                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modallong">
-                      <svg class="shopping-carriage">
-                        <use xlink:href="#shopping-carriage"></use>
-                      </svg>
-                    </button>
-                    <button type="button" class="btn btn-light" data-bs-target="#modaltoggle" data-bs-toggle="modal">
-                      <svg class="quick-view">
-                        <use xlink:href="#quick-view"></use>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <!-- cart-concern -->
-              </div>
-              <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                <h3 class="card-title fs-6 fw-normal m-0">
-                  <a href="index.html">Running shoes for men</a>
-                </h3>
-                <span class="card-price fw-bold">$99</span>
-              </div>
-            </div>
-          </div>
-          <div class="col mb-4 mb-3">
-            <div class="product-card position-relative">
-              <div class="card-img">
-                <img src="images/card-item9.jpg" alt="product-item" class="product-image img-fluid">
-                <div class="cart-concern position-absolute d-flex justify-content-center">
-                  <div class="cart-button d-flex gap-2 justify-content-center align-items-center">
-                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modallong">
-                      <svg class="shopping-carriage">
-                        <use xlink:href="#shopping-carriage"></use>
-                      </svg>
-                    </button>
-                    <button type="button" class="btn btn-light" data-bs-target="#modaltoggle" data-bs-toggle="modal">
-                      <svg class="quick-view">
-                        <use xlink:href="#quick-view"></use>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <!-- cart-concern -->
-              </div>
-              <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                <h3 class="card-title fs-6 fw-normal m-0">
-                  <a href="index.html">Running shoes for men</a>
-                </h3>
-                <span class="card-price fw-bold">$99</span>
-              </div>
-            </div>
-          </div>
-          <div class="col mb-4 mb-3">
-            <div class="product-card position-relative">
-              <div class="card-img">
-                <img src="images/card-item10.jpg" alt="product-item" class="product-image img-fluid">
-                <div class="cart-concern position-absolute d-flex justify-content-center">
-                  <div class="cart-button d-flex gap-2 justify-content-center align-items-center">
-                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modallong">
-                      <svg class="shopping-carriage">
-                        <use xlink:href="#shopping-carriage"></use>
-                      </svg>
-                    </button>
-                    <button type="button" class="btn btn-light" data-bs-target="#modaltoggle" data-bs-toggle="modal">
-                      <svg class="quick-view">
-                        <use xlink:href="#quick-view"></use>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <!-- cart-concern -->
-              </div>
-              <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                <h3 class="card-title fs-6 fw-normal m-0">
-                  <a href="index.html">Running shoes for men</a>
-                </h3>
-                <span class="card-price fw-bold">$99</span>
-              </div>
-            </div>
-          </div>
+                  <?php
+              }
+          } catch(PDOException $e) {
+              echo "Erreur : " . $e->getMessage();
+          }
+          ?>
         </div>
       </div>
-    </div>
-  </section>
+      </section>
 
   <?php include 'footer.php'; ?>
   <!-- Bootstrap JS -->
@@ -1044,17 +974,19 @@
                   // Gestion des prix
                   const prixPromo = parseFloat(product.prix);
                   const discount = parseFloat(product.discount);
-                  let prixOriginal = prixPromo;
+                  
+                  document.getElementById('details_prix_promo').textContent = `${prixPromo.toFixed(2)} DT`;
 
                   if (discount > 0) {
-                      prixOriginal = prixPromo / (1 - discount / 100);
+                      const prixOriginal = prixPromo / (1 - discount / 100);
                       document.getElementById('details_promotion_badge').style.display = 'inline-flex';
+                      document.getElementById('details_prix_original').textContent = `${prixOriginal.toFixed(2)} DT`;
+                      document.getElementById('details_prix_original').style.display = 'inline'; // S'assurer qu'il est visible
                   } else {
                       document.getElementById('details_promotion_badge').style.display = 'none';
+                      document.getElementById('details_prix_original').textContent = ''; // Vider le contenu
+                      document.getElementById('details_prix_original').style.display = 'none'; // Masquer l'élément
                   }
-
-                  document.getElementById('details_prix_promo').textContent = `${prixPromo.toFixed(2)} DT`;
-                  document.getElementById('details_prix_original').textContent = `${prixOriginal.toFixed(2)} DT`;
 
                   // Gestion des images
                   const carouselInner = document.getElementById('productDetailsCarouselInner');
@@ -1074,8 +1006,8 @@
                           <div class="carousel-item active">
                               <div class="d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
                                   <i class="fas fa-image fa-5x text-muted"></i>
-                              </div>
-                          </div>
+        </div>
+      </div>
                       `;
                   }
 
@@ -1307,7 +1239,7 @@
                                     <span>Ajouter au panier</span>
                                 </button>
                                 <button class="btn btn-outline-danger btn-favorite d-flex align-items-center justify-content-center gap-2" onclick="toggleFavorite(getCurrentProductId())">
-                                    <svg class="icon" style="width: 1.1em; height: 1.1em; fill: currentColor;"><use xlink:href="#heart"></use></svg>
+                                    <svg class="icon" style="width: 1.1em; height: 1.1em; fill: currentColor;"><use xlink:href="#heart-outline"></use></svg>
                                     <span>Ajouter au favoris</span>
                                 </button>
                             </div>
