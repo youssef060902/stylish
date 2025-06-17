@@ -1631,16 +1631,16 @@ if (isset($_SESSION['user_id'])) {
             <a class="nav-link me-5" href="nouveautes.php">Nouveautés</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link me-5" href="homme.php">Hommes</a>
+            <a class="nav-link me-5" href="hommes.php">Hommes</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link me-5" href="femme.php">Femmes</a>
+            <a class="nav-link me-5" href="femmes.php">Femmes</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link me-5" href="enfant.php">Enfants</a>
+            <a class="nav-link me-5" href="enfants.php">Enfants</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link me-5" href="populaires.php">Promotions</a>
+            <a class="nav-link me-5" href="promotions.php">Promotions</a>
           </li>
         </ul>
         <div class="search-container">

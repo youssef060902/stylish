@@ -760,7 +760,7 @@
       <div class="display-header d-flex align-items-center justify-content-between">
         <h2 class="section-title text-uppercase">Products on promotion</h2>
         <div class="btn-right">
-          <a href="products.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
+          <a href="promotions.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
         </div>
       </div>
       <div class="product-content padding-small">
@@ -864,7 +864,7 @@
       <div class="display-header d-flex align-items-center justify-content-between">
         <h2 class="section-title text-uppercase">Latest Products</h2>
         <div class="btn-right">
-          <a href="products.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
+          <a href="nouveautes.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
         </div>
       </div>
       <div class="product-content padding-small">
