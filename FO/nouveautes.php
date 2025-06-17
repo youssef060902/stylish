@@ -634,8 +634,8 @@
               <div class="mb-3">
                 <h5>Prix (DT)</h5>
                 <div class="d-flex gap-2">
-                  <input type="number" class="form-control form-control-sm" id="min-price" placeholder="Min" step="0.01" name="min_price">
-                  <input type="number" class="form-control form-control-sm" id="max-price" placeholder="Max" step="0.01" name="max_price">
+                  <input type="number" class="form-control form-control-sm" id="min-price" placeholder="Min" step="0.01" name="min_price" min=0>
+                  <input type="number" class="form-control form-control-sm" id="max-price" placeholder="Max" step="0.01" name="max_price" min=0>
                 </div>
               </div>
               <!-- Sizes Filter -->
@@ -782,6 +782,12 @@
   // Gérer la soumission du formulaire de filtre
   document.getElementById('filterForm').addEventListener('submit', function(event) {
       event.preventDefault(); // Empêcher la soumission normale du formulaire
+      const minPrice = parseFloat(document.getElementById('min-price').value);
+      const maxPrice = parseFloat(document.getElementById('max-price').value);
+      if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice > maxPrice) {
+          alert('Le prix minimum doit être inférieur ou égal au prix maximum.');
+          return;
+      }
       currentPage = 1; // Reset to first page on new filter
       loadFilteredProducts();
   });
