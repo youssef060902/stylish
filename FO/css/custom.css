@@ -1,0 +1,244 @@
+/* Variables globales */
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #e74c3c;
+  --text-color: #2c3e50;
+  --light-bg: #f8f9fa;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --navbar-height: 80px;
+}
+
+/* Styles de base */
+body {
+  font-family: 'Poppins', sans-serif;
+  padding-top: 0;
+}
+
+/* Barre de navigation */
+#header-nav {
+  background: linear-gradient(to right, #ffffff, #f8f9fa);
+  padding: 20px 0;
+  transition: var(--transition);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: var(--navbar-height);
+}
+
+#header-nav.scrolled {
+  padding: 10px 0;
+  background-color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+}
+
+#header-nav.scrolled .navbar-brand img {
+  height: 40px;
+}
+
+#header-nav .container-lg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+#header-nav .navbar-nav {
+  gap: 10px;
+  margin: 0;
+  height: 100%;
+  align-items: center;
+}
+
+#header-nav .navbar-nav .nav-item {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+#header-nav .navbar-nav .nav-link {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: var(--transition);
+  position: relative;
+  letter-spacing: 0.3px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+#header-nav .navbar-nav .nav-link:hover {
+  color: var(--secondary-color);
+  background: rgba(231, 76, 60, 0.05);
+}
+
+#header-nav .navbar-nav .nav-link.active {
+  color: var(--secondary-color);
+  background: rgba(231, 76, 60, 0.05);
+}
+
+/* Logo */
+#header-nav .navbar-brand {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#header-nav .navbar-brand img {
+  height: 45px;
+  transition: var(--transition);
+}
+
+#header-nav .navbar-brand:hover img {
+  transform: scale(1.02);
+}
+
+/* Icônes utilisateur */
+.user-items {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 100%;
+  margin-left: auto;
+}
+
+.user-items .nav-link {
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  background: var(--light-bg);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-items .nav-link:hover {
+  background: var(--secondary-color);
+}
+
+/* Styles pour l'upload d'avatar */
+.text-input.error {
+  border-color: #dc3545 !important;
+  background-color: #fff8f8 !important;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.text-input.error:focus {
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.custom-file-input {
+  display: none;
+}
+
+.camera-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.camera-icon-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #f3f3f3;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+  position: relative;
+  font-size: 0;
+}
+
+.camera-icon-label:hover {
+  background: #e9ecef;
+  border: 2px solid #dc3545;
+  box-shadow: 0 4px 16px rgba(220,53,69,0.10);
+}
+
+.camera-icon-label svg {
+  width: 36px;
+  height: 36px;
+  color: #dc3545;
+  display: block;
+}
+
+.camera-upload-text {
+  font-size: 0.95rem;
+  color: #888;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.avatar-preview-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-preview {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #dc3545;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(220,53,69,0.10);
+  display: block;
+}
+
+.avatar-remove-x {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #dc3545;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(220,53,69,0.15);
+  border: 2px solid #fff;
+  transition: background 0.2s;
+}
+
+.avatar-remove-x:hover {
+  background: #a71d2a;
+}
+
+/* About Us Section Final Design */
+.about-section-final .stylish-about-logo {
+  max-width: 300px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background-color: #fff;
+}
+
+/* Ensure the image within the logo container scales properly */
+.about-section-final .stylish-about-logo img {
+  width: 100%;
+  height: auto;
+} 
