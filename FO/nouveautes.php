@@ -662,6 +662,12 @@
               
             </div>
           </div>
+          <!-- Pagination Controls -->
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center" id="pagination-controls">
+              <!-- Pagination links will be generated here by JavaScript -->
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
@@ -684,6 +690,7 @@
   let showModalTimeout = null;
   let hideModalTimeout = null;
   let productDetailsModalInstance = null;
+  let currentPage = 1; // Current page for pagination
 
   function getCurrentProductId() {
       return currentProductId;
@@ -703,21 +710,79 @@
               params.set(pair[0], pair[1]);
           }
       }
+      params.set('page', currentPage); // Add current page parameter
 
       fetch(`get_filtered_products.php?${params.toString()}`)
-          .then(response => response.text())
-          .then(html => {
-              document.getElementById('product-list-container').innerHTML = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">${html}</div>`;
+          .then(response => response.json()) // Expect JSON response
+          .then(data => {
+              if (data.success) {
+                  document.getElementById('product-list-container').innerHTML = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">${data.html}</div>`;
+                  renderPaginationControls(data.total_pages, data.current_page);
+              } else {
+                  console.error('Erreur lors du chargement des produits filtrés:', data.message);
+                  document.getElementById('product-list-container').innerHTML = data.html;
+                  document.getElementById('pagination-controls').innerHTML = ''; // Clear pagination on error
+              }
           })
           .catch(error => {
               console.error('Erreur lors du chargement des produits filtrés:', error);
               document.getElementById('product-list-container').innerHTML = '<div class="col-12"><p class="text-center text-danger">Erreur lors du chargement des produits.</p></div>';
+              document.getElementById('pagination-controls').innerHTML = ''; // Clear pagination on error
           });
+  }
+
+  // Fonction pour générer les contrôles de pagination
+  function renderPaginationControls(totalPages, currentPage) {
+      const paginationContainer = document.getElementById('pagination-controls');
+      paginationContainer.innerHTML = ''; // Clear previous controls
+
+      if (totalPages < 1) {
+          return; // No pagination needed if no products
+      }
+
+      // Previous button
+      const prevClass = currentPage === 1 ? 'disabled' : '';
+      paginationContainer.innerHTML += `
+          <li class="page-item ${prevClass}">
+              <a class="page-link" href="#" data-page="${currentPage - 1}">Précédent</a>
+          </li>
+      `;
+
+      // Page numbers
+      for (let i = 1; i <= totalPages; i++) {
+          const activeClass = i === currentPage ? 'active' : '';
+          paginationContainer.innerHTML += `
+              <li class="page-item ${activeClass}">
+                  <a class="page-link" href="#" data-page="${i}">${i}</a>
+              </li>
+          `;
+      }
+
+      // Next button
+      const nextClass = currentPage === totalPages ? 'disabled' : '';
+      paginationContainer.innerHTML += `
+          <li class="page-item ${nextClass}">
+              <a class="page-link" href="#" data-page="${currentPage + 1}">Suivant</a>
+          </li>
+      `;
+
+      // Add event listeners to page links
+      paginationContainer.querySelectorAll('.page-link').forEach(link => {
+          link.addEventListener('click', function(e) {
+              e.preventDefault();
+              const newPage = parseInt(this.dataset.page);
+              if (newPage >= 1 && newPage <= totalPages) {
+                  currentPage = newPage;
+                  loadFilteredProducts();
+              }
+          });
+      });
   }
 
   // Gérer la soumission du formulaire de filtre
   document.getElementById('filterForm').addEventListener('submit', function(event) {
       event.preventDefault(); // Empêcher la soumission normale du formulaire
+      currentPage = 1; // Reset to first page on new filter
       loadFilteredProducts();
   });
 
