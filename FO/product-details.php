@@ -48,6 +48,17 @@ $stmt_reviews = $pdo->prepare("SELECT r.*, u.nom as user_nom, u.prenom as user_p
 $stmt_reviews->execute([$productId]);
 $reviews = $stmt_reviews->fetchAll(PDO::FETCH_ASSOC);
 
+// Récupération des pointures disponibles
+$stmt_sizes = $pdo->prepare("
+    SELECT p.pointure 
+    FROM pointure_produit pp
+    JOIN pointures p ON pp.id_pointure = p.id
+    WHERE pp.id_produit = ? AND pp.stock > 0
+    ORDER BY p.pointure ASC
+");
+$stmt_sizes->execute([$productId]);
+$sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
+
 // Calcul du prix avec promotion
 $prix_promo = $product['prix'];
 $prix_promo = $product['prix'];
@@ -57,6 +68,18 @@ if ($product['discount'] > 0) {
 }
 ?>
 <?php include 'header.php'; ?>
+<link rel="stylesheet" href="css/custom.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/vendor.css">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/all.min.css">
 
     <div class="container product-details">
         <div class="row">
@@ -65,13 +88,14 @@ if ($product['discount'] > 0) {
                     <img src="<?php echo htmlspecialchars($images[0] ?? 'images/no-image.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($product['nom']); ?>" 
                          class="main-image" 
-                         id="mainImage">
+                         id="mainImage"
+                         onclick="openLightbox(this.src)">
                     <div class="thumbnails">
                         <?php foreach ($images as $image): ?>
                         <img src="<?php echo htmlspecialchars($image); ?>" 
                              alt="Thumbnail" 
                              class="thumbnail"
-                             onclick="changeMainImage(this.src)">
+                             onclick="changeMainImage(this.src); setActiveThumbnail(this);">
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -115,6 +139,16 @@ if ($product['discount'] > 0) {
                             <div class="meta-label">Couleur</div>
                             <div class="meta-value"><?php echo htmlspecialchars($product['couleur']); ?></div>
                         </div>
+                        <?php if (!empty($sizes)): ?>
+                        <div class="meta-item">
+                            <div class="meta-label">Pointures disponibles</div>
+                            <div class="meta-value">
+                                <?php foreach ($sizes as $size): ?>
+                                    <span class="badge bg-light text-dark border me-1 mb-1"><?php echo htmlspecialchars($size); ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="product-description">
@@ -124,10 +158,10 @@ if ($product['discount'] > 0) {
 
                     <div class="action-buttons">
                         <button class="btn btn-primary" onclick="addToCart(<?php echo $product['id']; ?>)">
-                            <i class="fas fa-shopping-cart me-2"></i>Ajouter au panier
+                            <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Ajouter au panier
                         </button>
                         <button class="btn btn-outline-danger" onclick="toggleFavorite(<?php echo $product['id']; ?>)">
-                            <i class="fas fa-heart me-2"></i>Ajouter aux favoris
+                            <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Ajouter aux favoris
                         </button>
                     </div>
                 </div>
@@ -154,7 +188,11 @@ if ($product['discount'] > 0) {
                 </div>
                 <div class="review-rating">
                     <?php for ($i = 1; $i <= 5; $i++): ?>
-                    <i class="fas fa-star<?php echo $i <= $review['note'] ? '' : '-o'; ?>"></i>
+                    <?php if ($i <= $review['note']): ?>
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="#ffc107" stroke="#ffc107" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                    <?php else: ?>
+                    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                    <?php endif; ?>
                     <?php endfor; ?>
                 </div>
                 <div class="review-content">
@@ -165,7 +203,7 @@ if ($product['discount'] > 0) {
             <?php endif; ?>
 
             <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addReviewModal">
-                <i class="fas fa-pen me-2"></i>Ajouter un avis
+                <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>Ajouter un avis
             </button>
         </div>
     </div>
@@ -204,27 +242,43 @@ if ($product['discount'] > 0) {
         </div>
     </div>
 
+    <!-- Lightbox pour la galerie d'images -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+        <img src="" alt="Agrandissement" id="lightbox-img">
+    </div>
+
     <?php include 'footer.php'; ?>
 
     <script>
         function changeMainImage(src) {
             document.getElementById('mainImage').src = src;
         }
-
+        function setActiveThumbnail(el) {
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+        // Lightbox
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        function closeLightbox(e) {
+            if (e.target.classList.contains('lightbox') || e.target.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox').classList.remove('active');
+            }
+        }
         function addToCart(productId) {
             // Implémenter la logique d'ajout au panier
             alert('Produit ajouté au panier !');
         }
-
         function toggleFavorite(productId) {
             // Implémenter la logique d'ajout aux favoris
             alert('Produit ajouté aux favoris !');
         }
-
         function submitReview() {
             const form = document.getElementById('reviewForm');
             const formData = new FormData(form);
-
             fetch('add_review.php', {
                 method: 'POST',
                 body: formData
