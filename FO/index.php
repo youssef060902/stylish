@@ -1062,7 +1062,7 @@
               .catch(error => {
                   console.error('Erreur:', error);
               });
-      }, 300); // 300ms delay before showing modal
+      });
   }
 
   function hideProductModal() {
@@ -1071,11 +1071,9 @@
           showModalTimeout = null;
       }
       // Only hide if the modal is currently shown and the mouse is truly leaving
-      hideModalTimeout = setTimeout(() => {
-          if (productDetailsModalInstance) {
-              productDetailsModalInstance.hide();
-          }
-      }, 500); // 500ms delay before hiding modal
+      if (productDetailsModalInstance) {
+          productDetailsModalInstance.hide();
+      }
   }
 
   function selectSize(sizeBadge, pointure) {
@@ -1312,11 +1310,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (hideModalTimeout) {
             clearTimeout(hideModalTimeout);
         }
-        hideModalTimeout = setTimeout(() => {
-            if (productDetailsModalInstance) {
-                productDetailsModalInstance.hide();
-            }
-        }, 500); // Même délai que celui défini dans hideProductModal
+        if (productDetailsModalInstance) {
+            productDetailsModalInstance.hide();
+        }
     });
 
     modalElement.addEventListener('mouseenter', () => {
