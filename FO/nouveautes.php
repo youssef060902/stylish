@@ -152,14 +152,10 @@
     }
     .product-store .row {
       display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
       margin: 0 -10px;
       padding: 10px 0;
     }
     .product-store .col {
-      flex: 0 0 auto;
-      width: 250px;
       padding: 0 10px;
     }
 
@@ -184,14 +180,10 @@
   <style>
     .product-store .row {
       display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
       margin: 0 -10px;
       padding: 10px 0;
     }
     .product-store .col {
-      flex: 0 0 auto;
-      width: 250px;
       padding: 0 10px;
     }
     .product-store .product-card {
@@ -519,6 +511,47 @@
 </head>
 
 <body>
+  <?php
+  // Connexion à la base de données
+  $host = 'localhost';
+  $dbname = 'stylish';
+  $username = 'root';
+  $password = '';
+
+  try {
+      $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+      $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+      $pdo->exec("SET NAMES utf8");
+
+      // Récupérer les catégories uniques
+      $stmt_categories = $pdo->query("SELECT DISTINCT catégorie FROM produit ORDER BY catégorie");
+      $categories = $stmt_categories->fetchAll(PDO::FETCH_COLUMN);
+
+      // Récupérer les types uniques
+      $stmt_types = $pdo->query("SELECT DISTINCT type FROM produit ORDER BY type");
+      $types = $stmt_types->fetchAll(PDO::FETCH_COLUMN);
+
+      // Récupérer les couleurs uniques
+      $stmt_colors = $pdo->query("SELECT DISTINCT couleur FROM produit ORDER BY couleur");
+      $colors = $stmt_colors->fetchAll(PDO::FETCH_COLUMN);
+
+      // Récupérer les marques uniques
+      $stmt_brands = $pdo->query("SELECT DISTINCT marque FROM produit ORDER BY marque");
+      $brands = $stmt_brands->fetchAll(PDO::FETCH_COLUMN);
+
+      // Récupérer les pointures disponibles
+      $stmt_sizes = $pdo->query("SELECT pointure FROM pointures ORDER BY pointure");
+      $sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
+
+  } catch(PDOException $e) {
+      echo "Erreur de connexion à la base de données : " . $e->getMessage();
+      $categories = [];
+      $types = [];
+      $colors = [];
+      $brands = [];
+      $sizes = [];
+  }
+  ?>
   <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="heart" viewBox="0 0 24 24">
       <path d="M12 21.35l-1.84-1.66C4.01 15.36 2 13.06 2 10.11 2 6.7 4.7 4 8.11 4c1.98 0 3.91.96 5.12 2.5l.77.93.77-.93C15.9 4.96 17.82 4 19.89 4 23.3 4 26 6.7 26 10.11c0 2.95-2.01 5.25-8.16 9.58L12 21.35z"/>
@@ -533,78 +566,106 @@
   
   <section id="latest-products" class="product-store py-2 my-2 py-md-5 my-md-5 pt-0">
     <div class="container-md">
-      <div class="display-header d-flex align-items-center justify-content-between">
-        <h2 class="section-title text-uppercase">Latest Products</h2>
-        <div class="btn-right">
-          <a href="#" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
-        </div>
+      <div class="display-header d-flex align-items-center justify-content-center">
+        <h2 class="section-title-center text-uppercase">Latest Products</h2>
       </div>
-      <div class="product-content padding-small">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
-          <?php
-          // Connexion à la base de données (utiliser les mêmes identifiants que la section promotion)
-          $host = 'localhost';
-          $dbname = 'stylish';
-          $username = 'root';
-          $password = '';
-
-          try {
-              $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-              $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-              $pdo->exec("SET NAMES utf8");
-
-              // Récupération des 5 derniers produits ajoutés
-              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom,
-                                  (SELECT URL_Image FROM images_produits WHERE id_produit = p.id LIMIT 1) as image_url
-                                  FROM produit p
-                                  LEFT JOIN promotion pr ON p.id_promotion = pr.id
-                                  ORDER BY p.date_ajout DESC
-                                  LIMIT 5");
-              $latest_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-              foreach ($latest_products as $product) {
-                  $original_price = $product['prix'];
-                  if ($product['discount'] > 0) {
-                      $original_price = $product['prix'] / (1 - $product['discount'] / 100);
-                  }
-                  ?>
-                  <div class="col mb-4"> 
-                    <div class="product-card position-relative">
-                      <div class="card-img" onmouseenter="displayProductModal(<?php echo $product['id']; ?>)" onmouseleave="hideProductModal()">
-                        <?php if ($product['image_url']): ?>
-                          <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
-                        <?php else: ?>
-                          <img src="images/no-image.jpg" alt="No image" class="product-image img-fluid">
-                        <?php endif; ?>
-                        
-                        <?php if ($product['discount'] > 0): ?>
-                          <div class="discount-badge position-absolute top-0 end-0 m-2">
-                            -<?php echo $product['discount']; ?>%
-                          </div>
-                        <?php endif; ?>
-                      </div>
-                      <div class="card-detail d-flex justify-content-between align-items-center mt-3">
-                        <h3 class="card-title fs-6 fw-normal m-0">
-                          <a href="product-details.php?id=<?php echo $product['id']; ?>"><?php echo htmlspecialchars($product['nom']); ?></a>
-                        </h3>
-                        <div class="price-container">
-                          <span class="card-price fw-bold"><?php echo number_format($product['prix'], 2); ?> DT</span>
-                          <?php if ($product['discount'] > 0): ?>
-                            <span class="original-price text-decoration-line-through text-muted ms-2"><?php echo number_format($original_price, 2); ?> DT</span>
-                          <?php endif; ?>
-                        </div>
-                      </div>
+      <div class="row">
+        <div class="col-md-3">
+          <div class="filter-sidebar">
+            <h4 class="mb-3">Filtres</h4>
+            <form id="filterForm">
+              <!-- Category Filter -->
+              <div class="mb-3">
+                <h5>Catégorie</h5>
+                <div id="category-filters">
+                  <?php foreach ($categories as $category): ?>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($category); ?>" id="cat_<?php echo htmlspecialchars($category); ?>" name="categories[]">
+                      <label class="form-check-label" for="cat_<?php echo htmlspecialchars($category); ?>">
+                        <?php echo htmlspecialchars($category); ?>
+                      </label>
                     </div>
-                  </div>
-                  <?php
-              }
-          } catch(PDOException $e) {
-              echo "Erreur : " . $e->getMessage();
-          }
-          ?>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <!-- Type Filter -->
+              <div class="mb-3">
+                <h5>Type</h5>
+                <div id="type-filters">
+                  <?php foreach ($types as $type): ?>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($type); ?>" id="type_<?php echo htmlspecialchars($type); ?>" name="types[]">
+                      <label class="form-check-label" for="type_<?php echo htmlspecialchars($type); ?>">
+                        <?php echo htmlspecialchars($type); ?>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <!-- Color Filter -->
+              <div class="mb-3">
+                <h5>Couleur</h5>
+                <div id="color-filters">
+                  <?php foreach ($colors as $color): ?>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($color); ?>" id="color_<?php echo htmlspecialchars($color); ?>" name="colors[]">
+                      <label class="form-check-label" for="color_<?php echo htmlspecialchars($color); ?>">
+                        <?php echo htmlspecialchars($color); ?>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <!-- Brand Filter -->
+              <div class="mb-3">
+                <h5>Marque</h5>
+                <div id="brand-filters">
+                  <?php foreach ($brands as $brand): ?>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($brand); ?>" id="brand_<?php echo htmlspecialchars($brand); ?>" name="brands[]">
+                      <label class="form-check-label" for="brand_<?php echo htmlspecialchars($brand); ?>">
+                        <?php echo htmlspecialchars($brand); ?>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <!-- Price Filter -->
+              <div class="mb-3">
+                <h5>Prix (DT)</h5>
+                <div class="d-flex gap-2">
+                  <input type="number" class="form-control form-control-sm" id="min-price" placeholder="Min" step="0.01" name="min_price">
+                  <input type="number" class="form-control form-control-sm" id="max-price" placeholder="Max" step="0.01" name="max_price">
+                </div>
+              </div>
+              <!-- Sizes Filter -->
+              <div class="mb-3">
+                <h5>Pointures</h5>
+                <div id="sizes-filters" class="d-flex flex-wrap gap-2">
+                  <?php foreach ($sizes as $size): ?>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" value="<?php echo htmlspecialchars($size); ?>" id="size_<?php echo htmlspecialchars($size); ?>" name="sizes[]">
+                      <label class="form-check-label" for="size_<?php echo htmlspecialchars($size); ?>">
+                        <?php echo htmlspecialchars($size); ?>
+                      </label>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Appliquer les filtres</button>
+            </form>
+          </div>
+        </div>
+        <div class="col-md-9">
+          <div class="product-content padding-small" id="product-list-container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">
+              
+            </div>
+          </div>
         </div>
       </div>
-      </section>
+    </div>
+  </section>
 
   <?php include 'footer.php'; ?>
   <!-- Bootstrap JS -->
@@ -627,6 +688,74 @@
   function getCurrentProductId() {
       return currentProductId;
   }
+
+  // Fonction pour charger les produits filtrés via AJAX
+  function loadFilteredProducts() {
+      const form = document.getElementById('filterForm');
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
+
+      for (const pair of formData.entries()) {
+          // Pour les checkboxes multiples, FormData renvoie une entrée par sélection
+          if (pair[0].endsWith('[]')) {
+              params.append(pair[0], pair[1]);
+          } else {
+              params.set(pair[0], pair[1]);
+          }
+      }
+
+      fetch(`get_filtered_products.php?${params.toString()}`)
+          .then(response => response.text())
+          .then(html => {
+              document.getElementById('product-list-container').innerHTML = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">${html}</div>`;
+          })
+          .catch(error => {
+              console.error('Erreur lors du chargement des produits filtrés:', error);
+              document.getElementById('product-list-container').innerHTML = '<div class="col-12"><p class="text-center text-danger">Erreur lors du chargement des produits.</p></div>';
+          });
+  }
+
+  // Gérer la soumission du formulaire de filtre
+  document.getElementById('filterForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Empêcher la soumission normale du formulaire
+      loadFilteredProducts();
+  });
+
+  // Charger les produits au chargement initial de la page
+  document.addEventListener('DOMContentLoaded', function() {
+      loadFilteredProducts(); // Charger les produits par défaut au démarrage
+
+      var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+      var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
+          return new bootstrap.Dropdown(dropdownToggleEl);
+      });
+
+      const modalElement = document.getElementById('productDetailsModal');
+      productDetailsModalInstance = new bootstrap.Modal(modalElement, {
+          keyboard: true,
+          focus: true
+      });
+
+      modalElement.addEventListener('mouseleave', () => {
+          if (showModalTimeout) {
+              clearTimeout(showModalTimeout);
+              showModalTimeout = null;
+          }
+          if (hideModalTimeout) {
+              clearTimeout(hideModalTimeout);
+          }
+          if (productDetailsModalInstance) {
+              productDetailsModalInstance.hide();
+          }
+      });
+
+      modalElement.addEventListener('mouseenter', () => {
+          if (hideModalTimeout) {
+              clearTimeout(hideModalTimeout);
+              hideModalTimeout = null;
+          }
+      });
+  });
 
   function displayProductModal(id) {
       // Clear any pending hide timeouts
@@ -997,4 +1126,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
-</rewritten_file>

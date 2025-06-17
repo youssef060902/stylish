@@ -794,7 +794,7 @@
                   ?>
                   <div class="col mb-4"> 
                     <div class="product-card position-relative">
-                      <div class="card-img" onmouseenter="displayProductModal(<?php echo $product['id']; ?>)" onmouseleave="hideProductModal()">
+                      <div class="card-img" onclick="displayProductModal(<?php echo $product['id']; ?>)" onclick="hideProductModal()">
                         <?php if ($product['image_url']): ?>
                           <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
                         <?php else: ?>
@@ -898,7 +898,7 @@
                   ?>
                   <div class="col mb-4"> 
                     <div class="product-card position-relative">
-                      <div class="card-img" onmouseenter="displayProductModal(<?php echo $product['id']; ?>)" onmouseleave="hideProductModal()">
+                      <div class="card-img" onclick="displayProductModal(<?php echo $product['id']; ?>)" onclick="hideProductModal()">
                         <?php if ($product['image_url']): ?>
                           <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['nom']); ?>" class="product-image img-fluid">
                         <?php else: ?>

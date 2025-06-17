@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : ven. 13 juin 2025 à 17:09
+-- Généré le : mar. 17 juin 2025 à 19:08
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -166,9 +166,6 @@ CREATE TABLE `pointure_produit` (
 
 INSERT INTO `pointure_produit` (`id_produit`, `id_pointure`, `stock`) VALUES
 (50, 23, 4),
-(55, 15, 10),
-(55, 16, 15),
-(55, 17, 10),
 (52, 15, 5),
 (52, 16, 10),
 (52, 17, 10),
@@ -177,6 +174,9 @@ INSERT INTO `pointure_produit` (`id_produit`, `id_pointure`, `stock`) VALUES
 (53, 6, 10),
 (53, 7, 10),
 (53, 8, 10),
+(55, 15, 10),
+(55, 16, 15),
+(55, 17, 10),
 (54, 19, 5),
 (54, 20, 10),
 (54, 21, 10);
@@ -211,8 +211,8 @@ INSERT INTO `produit` (`id`, `nom`, `marque`, `catégorie`, `type`, `couleur`, `
 (50, 'Airforce', 'adidas', 'homme', 'running', 'bleu', 'DD', 'en stock', 100, 4, '2025-06-10 20:58:12', '2025-06-10 22:31:20', NULL),
 (52, 'Classic', 'Reebok', 'femme', 'casual', 'blanc', 'Chaussures casual classiques pour femme', 'en stock', 75, 30, '2025-06-11 10:05:00', '2025-06-13 15:39:44', NULL),
 (53, 'Superstar', 'adidas', 'enfant', 'casual', 'bleu', 'Chaussures pour enfants style casual', 'en stock', 60, 40, '2025-06-11 10:10:00', '2025-06-13 15:48:26', NULL),
-(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en promotion', 40, 25, '2025-06-11 10:15:00', '2025-06-13 15:54:43', 18),
-(55, 'Chuck Taylor', 'Converse', 'femme', 'casual', 'noir', 'Baskets classiques pour femme', 'en stock', 65, 35, '2025-06-11 10:20:00', '2025-06-11 02:10:06', NULL);
+(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en promotion', 40, 25, '2025-06-11 10:15:00', '2025-06-14 18:50:34', 18),
+(55, 'Chuck Taylor', 'Converse', 'femme', 'casual', 'noir', 'Baskets classiques pour femme', 'en stock', 65, 35, '2025-06-11 10:20:00', '2025-06-14 18:47:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -239,7 +239,7 @@ INSERT INTO `promotion` (`id`, `nom`, `description`, `date_debut`, `date_fin`, `
 (15, 'Noël', 'Promotion de Noël', '2025-12-01 00:00:00', '2025-12-31 23:59:59', 40),
 (16, 'Nouvel An', 'Promotion spéciale Nouvel An', '2025-12-26 00:00:00', '2026-01-15 23:59:59', 20),
 (17, 'Black Friday', 'Super promotions Black Friday', '2025-11-25 00:00:00', '2025-11-30 23:59:59', 50),
-(18, 'black friday', 'C\'est Black Friday', '2025-06-12 15:51:00', '2025-06-13 15:56:00', 50);
+(18, 'black friday', 'C\'est Black Friday', '2025-06-12 15:51:00', '2025-06-21 00:47:00', 60);
 
 -- --------------------------------------------------------
 
@@ -284,7 +284,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `prenom`, `nom`, `genre`, `date_naissance`, `age`, `phone`, `adresse`, `email`, `password`, `image`) VALUES
-(74, 'Youssef ', 'Azzouz', 'homme', '2002-09-06', 22, '26556300', 'Carthage', 'youssefcarma@gmail.com', 'admin123', 'http://localhost/img/user_684b438440a84.jpg');
+(89, 'Mohamed Youssef', 'Azzouz', 'homme', '2000-02-02', 25, '25556300', 'Carthage', 'mohamedyoussefazzouz@gmail.com', 'youssef', 'http://localhost/img/user_684f0be930d8f.jpg'),
+(90, 'Med Youssef', 'Azzouz', 'homme', '2000-10-10', 24, '26556300', 'Carthage ', 'youssefcarma@gmail.com', 'youssef', 'http://localhost/img/user_6851739b1e691.jpg');
 
 --
 -- Index pour les tables déchargées
@@ -424,7 +425,7 @@ ALTER TABLE `reclamation`
 -- AUTO_INCREMENT pour la table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- Contraintes pour les tables déchargées
@@ -499,4 +500,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-SET GLOBAL event_scheduler = ON;
