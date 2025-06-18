@@ -411,11 +411,11 @@ if (isset($_SESSION['user_id'])) {
                     form.reset();
                     location.reload();
                 } else {
-                    // alert(data.message); // supprimé pour silence
+                    alert(data.message); // supprimé pour silence
                 }
             })
             .catch(error => {
-                // alert('Une erreur est survenue lors de l\'ajout de l\'avis.'); // supprimé pour silence
+                alert('Une erreur est survenue lors de l\'ajout de l\'avis.'); // supprimé pour silence
             });
         }
         function openEditReviewModalFromBtn(btn) {
