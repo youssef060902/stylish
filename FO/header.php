@@ -1684,6 +1684,25 @@ if (isset($_SESSION['user_id'])) {
                         Changer mot de passe
                       </a>
                     </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="favorites.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                          <path d="m8 2.748-.717-.737C5.6.281 2.514 3.053 3.824 6.143c.636 1.528 2.293 3.356 4.176 4.857 1.883-1.5 3.54-3.329 4.176-4.857C13.486 3.053 10.4.28 8.717 2.01L8 2.748zm0 8.684C-7.333 3.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171.057-.059.116-.116.176-.171C12.721-3.042 23.333 3.868 8 11.432z"/>
+                        </svg>
+                        Mes favoris
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="reclamations.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
+                          <path d="M2 2a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2.586l2.707 2.707a1 1 0 0 0 1.414 0L11.414 13H14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2.586l-2.707 2.707a.5.5 0 0 1-.708 0L5.586 11H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+                          <circle cx="5" cy="8" r="1"/>
+                          <circle cx="8" cy="8" r="1"/>
+                          <circle cx="11" cy="8" r="1"/>
+                        </svg>
+                        Mes réclamations
+                      </a>
+                    </li>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown-header">Actions</div>
                     <li>
@@ -3136,48 +3155,8 @@ if (isset($_SESSION['user_id'])) {
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Popper.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-  <script>
-    // Initialisation immédiate des dropdowns
-    function initializeDropdowns() {
-      const dropdowns = document.querySelectorAll('[data-bs-toggle="dropdown"]');
-      dropdowns.forEach(dropdown => {
-        new bootstrap.Dropdown(dropdown);
-      });
-    }
-
-    // Initialiser immédiatement
-    initializeDropdowns();
-
-    // Réinitialiser après chaque changement de contenu dynamique
-    document.addEventListener('DOMContentLoaded', initializeDropdowns);
-    
-    // Observer les changements dans le DOM
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.addedNodes.length) {
-          initializeDropdowns();
-        }
-      });
-    });
-
-    // Observer tout le document
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  </script>
-  <script>
-      $(document).ready(function() {
-        // Initialiser tous les dropdowns
-        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-        var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
-          return new bootstrap.Dropdown(dropdownToggleEl);
-        });
-      });
-    </script>
+  
+  
     <script>
       // ... existing code ...
       // Fonction de recherche dynamique
@@ -3266,40 +3245,45 @@ if (isset($_SESSION['user_id'])) {
   </script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialiser tous les dropdowns
-      const dropdowns = document.querySelectorAll('.dropdown-toggle');
-      dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('click', function(e) {
-          e.preventDefault();
-          const dropdownMenu = this.nextElementSibling;
-          dropdownMenu.classList.toggle('show');
-        });
-      });
-
-      // Fermer le dropdown quand on clique en dehors
-      document.addEventListener('click', function(e) {
-        if (!e.target.matches('.dropdown-toggle')) {
-          const dropdowns = document.querySelectorAll('.dropdown-menu.show');
-          dropdowns.forEach(dropdown => {
-            dropdown.classList.remove('show');
-          });
-        }
-      });
-    });
-  </script>
-  <script>
-    // Initialisation du dropdown
-    $(function() {
-      // Initialiser tous les dropdowns
-      $('.dropdown-toggle').dropdown();
-      
-      // Gérer le clic sur le dropdown
-      $('.dropdown-toggle').on('click', function(e) {
+  // Fonction pour initialiser les dropdowns
+  function initializeDropdowns() {
+    const dropdowns = document.querySelectorAll('.dropdown-toggle:not(.dropdown-initialized)');
+    console.log('Dropdowns found:', dropdowns.length, dropdowns);
+    dropdowns.forEach(dropdown => {
+      dropdown.addEventListener('click', function(e) {
         e.preventDefault();
-        $(this).dropdown('toggle');
+        const dropdownMenu = this.nextElementSibling;
+        dropdownMenu.classList.toggle('show');
       });
+      dropdown.classList.add('dropdown-initialized');
     });
+  }
+
+  // Initialiser au chargement
+  initializeDropdowns();
+
+  // Fermer le dropdown quand on clique en dehors
+  document.addEventListener('click', function(e) {
+    if (!e.target.matches('.dropdown-toggle')) {
+      const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+      dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+      });
+    }
+  });
+
+  // Observer les changements dynamiques dans le DOM
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.addedNodes.length) {
+        initializeDropdowns();
+      }
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+});
   </script>
+  
   <script>
 document.addEventListener('DOMContentLoaded', function() {
   const settingsLink = document.querySelector('[data-bs-target="#modalSettings"]');

@@ -252,7 +252,6 @@ CREATE TABLE `reclamation` (
   `id_user` int(5) NOT NULL,
   `id_produit` int(11) DEFAULT NULL,
   `type` enum('produit','livraison','service','paiement','autre') NOT NULL,
-  `sujet` varchar(100) NOT NULL,
   `description` text NOT NULL,
   `date_creation` datetime NOT NULL DEFAULT current_timestamp(),
   `date_modification` datetime DEFAULT NULL ON UPDATE current_timestamp(),
