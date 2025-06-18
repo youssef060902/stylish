@@ -46,6 +46,15 @@ if (empty($comment)) {
 }
 
 try {
+    // Vérifier si l'utilisateur a déjà laissé un avis pour ce produit
+    $stmt = $pdo->prepare("SELECT id FROM avis WHERE id_user = ? AND id_produit = ?");
+    $stmt->execute([$user_id, $product_id]);
+    
+    if ($stmt->rowCount() > 0) {
+        echo json_encode(['success' => false, 'message' => 'Vous avez déjà laissé un avis pour ce produit']);
+        exit();
+    }
+
     // Ajouter l'avis
     $stmt = $pdo->prepare("INSERT INTO avis (id_user, id_produit, note, commentaire, date_creation, date_modification) 
                           VALUES (?, ?, ?, ?, NOW(), NULL)");

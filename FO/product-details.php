@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Connexion à la base de données
 $host = 'localhost';
 $dbname = 'stylish';
@@ -66,6 +67,14 @@ if ($product['discount'] > 0) {
     $prix_original = $prix_promo / (1 - $product['discount'] / 100);
     $prix_original = round($prix_original, 2);
 }
+
+// Vérifier si le produit est dans les favoris de l'utilisateur connecté
+$isFavorite = false;
+if (isset($_SESSION['user_id'])) {
+    $stmt_fav = $pdo->prepare("SELECT COUNT(*) FROM favoris WHERE id_user = ? AND id_produit = ?");
+    $stmt_fav->execute([$_SESSION['user_id'], $productId]);
+    $isFavorite = $stmt_fav->fetchColumn() > 0;
+}
 ?>
 <?php include 'header.php'; ?>
 <link rel="stylesheet" href="css/custom.css">
@@ -80,6 +89,32 @@ if ($product['discount'] > 0) {
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,900;1,900&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/all.min.css">
+
+<style>
+.rating-bar {
+  display: flex;
+  flex-direction: row;
+}
+.rating-bar input[type="radio"] {
+  display: none;
+}
+.rating-bar label {
+  cursor: pointer;
+}
+.rating-bar label svg {
+  fill: #ddd;
+  stroke: #FFD700;
+  transition: fill 0.2s;
+}
+.rating-bar input[type="radio"]:checked ~ label svg,
+.rating-bar input[type="radio"]:checked ~ label ~ label svg {
+  fill: #FFD700 !important;
+}
+.rating-bar label:hover ~ label svg,
+.rating-bar label:hover svg {
+  fill: #FFD700 !important;
+}
+</style>
 
     <div class="container product-details">
         <div class="row">
@@ -102,7 +137,12 @@ if ($product['discount'] > 0) {
             </div>
             <div class="col-md-6">
                 <div class="product-info">
-                    <h1 class="product-title"><?php echo htmlspecialchars($product['nom']); ?></h1>
+                    <h1 class="product-title">
+                        <?php echo htmlspecialchars($product['nom']); ?>
+                        <span id="favorite-heart" style="display:<?php echo $isFavorite ? 'inline-block' : 'none'; ?>">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-left:8px;"><path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z"/></svg>
+                        </span>
+                    </h1>
                     
                     <?php if ($product['discount'] > 0): ?>
                     <div class="promotion-badge">
@@ -236,11 +276,13 @@ if ($product['discount'] > 0) {
                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                         <div class="mb-3">
                             <label class="form-label">Note</label>
-                            <div class="rating">
+                            <div class="rating-bar">
                                 <?php for ($i = 5; $i >= 1; $i--): ?>
                                 <input type="radio" name="rating" value="<?php echo $i; ?>" id="star<?php echo $i; ?>" required>
                                 <label for="star<?php echo $i; ?>">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ddd" stroke="#ddd" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
                                 </label>
                                 <?php endfor; ?>
                             </div>
@@ -272,11 +314,13 @@ if ($product['discount'] > 0) {
                         <input type="hidden" id="editReviewId" name="id">
                         <div class="mb-3">
                             <label class="form-label">Note</label>
-                            <div class="rating">
+                            <div class="rating-bar">
                                 <?php for ($i = 5; $i >= 1; $i--): ?>
                                 <input type="radio" name="edit_rating" value="<?php echo $i; ?>" id="edit_star<?php echo $i; ?>">
                                 <label for="edit_star<?php echo $i; ?>">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ddd" stroke="#ddd" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
                                 </label>
                                 <?php endfor; ?>
                             </div>
@@ -337,7 +381,14 @@ if ($product['discount'] > 0) {
             .then(data => {
                 if (data.success) {
                     alert(data.message);
-                    // Ici, tu peux aussi changer l'icône ou le texte du bouton selon data.isFavorite
+                    const heart = document.getElementById('favorite-heart');
+                    if (heart) {
+                        if (data.isFavorite) {
+                            heart.style.display = 'inline-block';
+                        } else {
+                            heart.style.display = 'none';
+                        }
+                    }
                 } else {
                     alert(data.message);
                 }
@@ -355,16 +406,16 @@ if ($product['discount'] > 0) {
             })
             .then(response => response.json())
             .then(data => {
+                alert(data.message)
                 if (data.success) {
-                    alert(data.message || 'Avis ajouté avec succès !');
                     form.reset();
                     location.reload();
                 } else {
-                    alert(data.message || 'Erreur lors de l\'ajout de l\'avis.');
+                    // alert(data.message); // supprimé pour silence
                 }
             })
             .catch(error => {
-                alert('Une erreur est survenue lors de l\'ajout de l\'avis.');
+                // alert('Une erreur est survenue lors de l\'ajout de l\'avis.'); // supprimé pour silence
             });
         }
         function openEditReviewModalFromBtn(btn) {
@@ -375,6 +426,18 @@ if ($product['discount'] > 0) {
             // Cocher la bonne étoile
             var radios = document.getElementsByName('edit_rating');
             radios.forEach(r => { r.checked = (r.value == note); });
+            // Met à jour la couleur des étoiles selon la note sélectionnée
+            var noteInt = parseInt(note);
+            radios.forEach(r => {
+                const svg = r.nextElementSibling.querySelector('svg');
+                if (parseInt(r.value) <= noteInt) {
+                    svg.setAttribute('fill', '#ffc107');
+                    svg.setAttribute('stroke', '#ffc107');
+                } else {
+                    svg.setAttribute('fill', '#ddd');
+                    svg.setAttribute('stroke', '#ddd');
+                }
+            });
             var modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
             modal.show();
         }
@@ -410,27 +473,6 @@ if ($product['discount'] > 0) {
             })
             .catch(() => alert('Erreur lors de la modification.'));
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            function updateStars(name) {
-                const radios = document.getElementsByName(name);
-                radios.forEach((radio, idx) => {
-                    radio.addEventListener('change', function() {
-                        radios.forEach((r, i) => {
-                            const svg = r.nextElementSibling.querySelector('svg');
-                            if (i <= (5 - radio.value)) {
-                                svg.setAttribute('fill', '#ffc107');
-                                svg.setAttribute('stroke', '#ffc107');
-                            } else {
-                                svg.setAttribute('fill', '#ddd');
-                                svg.setAttribute('stroke', '#ddd');
-                            }
-                        });
-                    });
-                });
-            }
-            updateStars('rating');
-            updateStars('edit_rating');
-        });
     </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
