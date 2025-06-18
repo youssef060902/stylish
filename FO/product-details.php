@@ -185,6 +185,18 @@ if ($product['discount'] > 0) {
                     <div class="review-date">
                         <?php echo date('d/m/Y', strtotime($review['date_creation'])); ?>
                     </div>
+                    <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $review['id_user']): ?>
+                    <div class="review-actions ms-auto">
+                        <button class="btn btn-sm btn-outline-primary me-1"
+                            data-id="<?php echo $review['id']; ?>"
+                            data-note="<?php echo $review['note']; ?>"
+                            data-commentaire="<?php echo htmlspecialchars($review['commentaire'], ENT_QUOTES); ?>"
+                            onclick="openEditReviewModalFromBtn(this)">
+                            Modifier
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteReview(<?php echo $review['id']; ?>)">Supprimer</button>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="review-rating">
                     <?php for ($i = 1; $i <= 5; $i++): ?>
@@ -237,6 +249,35 @@ if ($product['discount'] > 0) {
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="button" class="btn btn-primary" onclick="submitReview()">Publier</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Édition Avis -->
+    <div class="modal fade" id="editReviewModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier l'avis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editReviewForm" onsubmit="event.preventDefault(); submitEditReview();">
+                        <input type="hidden" id="editReviewId" name="id">
+                        <div class="mb-3">
+                            <label class="form-label">Note</label>
+                            <input type="number" min="1" max="5" class="form-control" id="editReviewRating" name="note" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Commentaire</label>
+                            <textarea class="form-control" id="editReviewComment" name="commentaire" rows="4" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditReview()">Enregistrer</button>
                 </div>
             </div>
         </div>
@@ -313,6 +354,43 @@ if ($product['discount'] > 0) {
             .catch(error => {
                 alert('Une erreur est survenue lors de l\'ajout de l\'avis.');
             });
+        }
+        function openEditReviewModalFromBtn(btn) {
+            document.getElementById('editReviewId').value = btn.getAttribute('data-id');
+            document.getElementById('editReviewRating').value = btn.getAttribute('data-note');
+            document.getElementById('editReviewComment').value = btn.getAttribute('data-commentaire');
+            var modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+            modal.show();
+        }
+        function deleteReview(id) {
+            if (!confirm('Voulez-vous vraiment supprimer cet avis ?')) return;
+            fetch('delete_review.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) location.reload();
+            })
+            .catch(() => alert('Erreur lors de la suppression.'));
+        }
+        function submitEditReview() {
+            const id = document.getElementById('editReviewId').value;
+            const note = document.getElementById('editReviewRating').value;
+            const commentaire = document.getElementById('editReviewComment').value;
+            fetch('edit_review.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, note: note, commentaire: commentaire })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) location.reload();
+            })
+            .catch(() => alert('Erreur lors de la modification.'));
         }
     </script>
 
