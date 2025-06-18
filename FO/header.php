@@ -296,6 +296,8 @@ if (isset($_SESSION['user_id'])) {
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
     }
 
+    
+
     /* Icônes utilisateur */
     .user-items {
       display: flex;
@@ -1192,6 +1194,33 @@ if (isset($_SESSION['user_id'])) {
         font-size: 0.875em;
         margin-top: 5px;
     }
+
+    .input-group.input-group-sm.mt-1 {
+      max-width: 110px !important;
+      min-width: 90px;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+    .input-group.input-group-sm.mt-1 input.input-qty {
+      width: 38px !important;
+      min-width: 0;
+      text-align: center;
+      padding: 0 2px;
+      font-size: 1rem;
+      height: 32px;
+    }
+    .input-group.input-group-sm.mt-1 button {
+      min-width: 28px;
+      max-width: 32px;
+      padding: 0;
+      font-size: 1.1rem;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
   <!-- Font Awesome explicit font-family declaration -->
     
@@ -1734,10 +1763,11 @@ if (isset($_SESSION['user_id'])) {
               <?php endif; ?>
             </li>
             <li class="pe-3">
-              <a href="#" data-bs-toggle="modal" data-bs-target="#modallong" class="border-0">
+              <a href="#" id="cartModalToggle" class="border-0 position-relative">
                 <svg class="shopping-cart" width="24" height="24">
                   <use xlink:href="#shopping-cart"></use>
                 </svg>
+                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem;z-index:1001;display:none;">0</span>
               </a>
             </li>
           </ul>
@@ -3332,6 +3362,228 @@ $(function() {
     $('body').css('padding-right', '');
   });
 });
+</script>
+<script>
+// ... existing code ...
+// Gestion du mini-panier
+function renderCartDropdown() {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  let cartItemsList = document.getElementById('cart-items-list');
+  let total = 0;
+  if (cart.length === 0) {
+    cartItemsList.innerHTML = '<div class="text-center text-muted">Votre panier est vide.</div>';
+  } else {
+    cartItemsList.innerHTML = cart.map(item => `
+      <div class="d-flex align-items-center mb-2">
+        <img src="${item.image}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;">
+        <div class="flex-grow-1">
+          <div class="fw-semibold">${item.nom}</div>
+          <div class="small text-muted">Pointure : ${item.pointure} | Qté : ${item.quantite}</div>
+        </div>
+        <div class="fw-bold ms-2">${(item.prix * item.quantite).toFixed(2)} DT</div>
+      </div>
+    `).join('');
+  }
+  // Mettre à jour le total
+  cart.forEach(item => { total += item.prix * item.quantite; });
+  let cartTotalEl = document.getElementById('cart-total');
+  if (cartTotalEl) {
+    cartTotalEl.textContent = total.toFixed(2) + ' DT';
+  }
+}
+// Affichage/fermeture du dropdown panier
+const cartToggle = document.getElementById('cartDropdownToggle');
+const cartDropdown = document.getElementById('cartDropdown');
+if (cartToggle && cartDropdown) {
+  cartToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    renderCartDropdown();
+    cartDropdown.style.display = cartDropdown.style.display === 'block' ? 'none' : 'block';
+  });
+  // Fermer le dropdown si on clique en dehors
+  document.addEventListener('click', function(e) {
+    if (!cartDropdown.contains(e.target) && !cartToggle.contains(e.target)) {
+      cartDropdown.style.display = 'none';
+    }
+  });
+}
+// Mettre à jour le badge et le total au chargement
+function updateCartCountHeader() {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  let count = cart.length;
+  let cartCountEl = document.getElementById('cart-count');
+  if (cartCountEl) {
+    cartCountEl.textContent = count;
+    cartCountEl.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+}
+function updateCartTotalHeader() {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  let total = 0;
+  cart.forEach(item => { total += item.prix * item.quantite; });
+  let cartTotalEl = document.getElementById('cart-total');
+  if (cartTotalEl) {
+    cartTotalEl.textContent = total.toFixed(2) + ' DT';
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  updateCartCountHeader();
+  updateCartTotalHeader();
+});
+// Permettre la mise à jour du header depuis d'autres pages
+window.updateCartCount = updateCartCountHeader;
+window.updateCartTotal = updateCartTotalHeader;
+</script>
+
+<!-- Modal Panier -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;overflow:hidden;">
+      <div class="modal-header" style="background:#fff;">
+        <h5 class="modal-title fw-bold" id="cartModalLabel" style="color:#e74c3c;">Mon panier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body p-4" style="background:#fff;">
+        <div id="cart-items-list-modal" style="max-height:220px;overflow-y:auto;"></div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <span class="fw-bold">Total :</span>
+          <span id="cart-total-modal" class="fw-bold">0.00 DT</span>
+        </div>
+      </div>
+      <div class="modal-footer bg-white">
+        <a href="checkout.php" class="btn btn-primary w-100" style="background:#e74c3c;border:none;border-radius:8px;font-weight:600;">Commander</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ... existing code ...
+// Gestion du popup panier (modale)
+function renderCartModal() {
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+  let cartItemsList = document.getElementById('cart-items-list-modal');
+  let total = 0;
+  if (cart.length === 0) {
+    cartItemsList.innerHTML = '<div class="text-center text-muted">Votre panier est vide.</div>';
+  } else {
+    cartItemsList.innerHTML = cart.map((item, idx) => `
+      <div class="d-flex align-items-center mb-2" data-idx="${idx}">
+        <img src="${item.image}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;">
+        <div class="flex-grow-1">
+          <div class="fw-semibold">${item.nom}</div>
+          <div class="small text-muted">Pointure : ${item.pointure}</div>
+          <input type="number" class="form-control form-control-sm input-qty mt-1" min="1" value="${item.quantite}" data-idx="${idx}" style="width:60px;max-width:100%;display:inline-block;">
+        </div>
+        <div class="fw-bold ms-2" style="min-width:70px;">${(item.prix * item.quantite).toFixed(2)} DT</div>
+        <button class="btn btn-link text-danger btn-remove-item ms-2 p-0" data-idx="${idx}" title="Supprimer">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+  // Mettre à jour le total
+  cart.forEach(item => { total += item.prix * item.quantite; });
+  let cartTotalEl = document.getElementById('cart-total-modal');
+  if (cartTotalEl) {
+    cartTotalEl.textContent = total.toFixed(2) + ' DT';
+  }
+
+  // Gestion des suppressions
+  document.querySelectorAll('.btn-remove-item').forEach(btn => {
+    btn.onclick = function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart.splice(idx, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCartModal();
+      updateCartCountHeader();
+    };
+  });
+  // Gestion des modifications de quantité (input simple)
+  document.querySelectorAll('.input-qty').forEach(input => {
+    input.addEventListener('input', function() {
+      let val = parseInt(this.value);
+      if (isNaN(val) || val < 1) val = 1;
+      this.value = val;
+      const idx = parseInt(this.getAttribute('data-idx'));
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart[idx].quantite = val;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      // Mettre à jour le prix à côté sans re-render complet
+      this.closest('.d-flex').querySelector('.fw-bold').textContent = (cart[idx].prix * cart[idx].quantite).toFixed(2) + ' DT';
+      // Mettre à jour le total général
+      let total = 0;
+      cart.forEach(item => { total += item.prix * item.quantite; });
+      let cartTotalEl = document.getElementById('cart-total-modal');
+      if (cartTotalEl) cartTotalEl.textContent = total.toFixed(2) + ' DT';
+      updateCartCountHeader();
+    });
+    input.addEventListener('change', function() {
+      let val = parseInt(this.value);
+      if (isNaN(val) || val < 1) val = 1;
+      this.value = val;
+      const idx = parseInt(this.getAttribute('data-idx'));
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart[idx].quantite = val;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCartModal();
+      updateCartCountHeader();
+    });
+  });
+  // Gestion des boutons + / -
+  document.querySelectorAll('.btn-qty-minus').forEach(btn => {
+    btn.onclick = function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (cart[idx].quantite > 1) {
+        cart[idx].quantite--;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        // Mettre à jour l'affichage localement sans re-render complet
+        const parent = this.closest('.d-flex');
+        parent.querySelector('.input-qty').value = cart[idx].quantite;
+        parent.querySelector('.fw-bold').textContent = (cart[idx].prix * cart[idx].quantite).toFixed(2) + ' DT';
+        // Mettre à jour le total général
+        let total = 0;
+        cart.forEach(item => { total += item.prix * item.quantite; });
+        let cartTotalEl = document.getElementById('cart-total-modal');
+        if (cartTotalEl) cartTotalEl.textContent = total.toFixed(2) + ' DT';
+        updateCartCountHeader();
+      }
+    };
+  });
+  document.querySelectorAll('.btn-qty-plus').forEach(btn => {
+    btn.onclick = function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      cart[idx].quantite++;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      // Mettre à jour l'affichage localement sans re-render complet
+      const parent = this.closest('.d-flex');
+      parent.querySelector('.input-qty').value = cart[idx].quantite;
+      parent.querySelector('.fw-bold').textContent = (cart[idx].prix * cart[idx].quantite).toFixed(2) + ' DT';
+      // Mettre à jour le total général
+      let total = 0;
+      cart.forEach(item => { total += item.prix * item.quantite; });
+      let cartTotalEl = document.getElementById('cart-total-modal');
+      if (cartTotalEl) cartTotalEl.textContent = total.toFixed(2) + ' DT';
+      updateCartCountHeader();
+    };
+  });
+}
+// ... existing code ...
+</script>
+
+<script>
+const cartModalToggle = document.getElementById('cartModalToggle');
+if (cartModalToggle) {
+  cartModalToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    renderCartModal();
+    var modal = new bootstrap.Modal(document.getElementById('cartModal'));
+    modal.show();
+  });
+}
 </script>
 </body>
 </html>

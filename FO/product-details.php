@@ -197,7 +197,7 @@ if (isset($_SESSION['user_id'])) {
                     </div>
 
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="addToCart(<?php echo $product['id']; ?>)">
+                        <button class="btn btn-primary" onclick="openAddToCartModal()">
                             <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Ajouter au panier
                         </button>
                         <button class="btn btn-outline-danger" onclick="toggleFavorite(<?php echo $product['id']; ?>)">
@@ -376,6 +376,39 @@ if (isset($_SESSION['user_id'])) {
       </div>
     </div>
 
+    <!-- Modal Ajout au Panier -->
+    <div class="modal fade" id="addToCartModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter au panier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addToCartForm">
+                        <div class="mb-3">
+                            <label class="form-label">Pointure</label>
+                            <select class="form-select" name="pointure" id="cartPointure" required>
+                                <option value="">Sélectionner une pointure</option>
+                                <?php foreach ($sizes as $size): ?>
+                                    <option value="<?php echo htmlspecialchars($size); ?>"><?php echo htmlspecialchars($size); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Quantité</label>
+                            <input type="number" class="form-control" name="quantite" id="cartQuantite" min="1" value="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddToCart()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include 'footer.php'; ?>
 
     <script>
@@ -396,10 +429,83 @@ if (isset($_SESSION['user_id'])) {
                 document.getElementById('lightbox').classList.remove('active');
             }
         }
-        function addToCart(productId) {
-            // Implémenter la logique d'ajout au panier
-            alert('Produit ajouté au panier !');
+        function openAddToCartModal() {
+            var modal = new bootstrap.Modal(document.getElementById('addToCartModal'));
+            document.getElementById('addToCartForm').reset();
+            modal.show();
         }
+        function submitAddToCart() {
+            const pointure = document.getElementById('cartPointure').value;
+            const quantite = parseInt(document.getElementById('cartQuantite').value);
+            if (!pointure || quantite < 1) {
+                showToast('Veuillez choisir une pointure et une quantité valide.', 'danger');
+                return;
+            }
+            // Récupérer les infos produit
+            const product = {
+                id: <?php echo $product['id']; ?>,
+                nom: <?php echo json_encode($product['nom']); ?>,
+                prix: <?php echo $prix_promo; ?>,
+                image: <?php echo json_encode($images[0] ?? 'images/no-image.jpg'); ?>,
+                pointure: pointure,
+                quantite: quantite
+            };
+            // Gestion du panier dans localStorage
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            // Vérifier si ce produit/pointure existe déjà
+            const index = cart.findIndex(item => item.id === product.id && item.pointure === pointure);
+            if (index !== -1) {
+                cart[index].quantite += quantite;
+            } else {
+                cart.push(product);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            updateCartTotal();
+            showToast('Produit ajouté au panier !', 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
+            modal.hide();
+        }
+        function updateCartCount() {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            // Nombre de produits différents (pas la somme des quantités)
+            let count = cart.length;
+            let cartCountEl = document.getElementById('cart-count');
+            if (!cartCountEl) {
+                // Créer le badge si absent
+                const cartIcon = document.querySelector('.shopping-cart');
+                if (cartIcon) {
+                    cartCountEl = document.createElement('span');
+                    cartCountEl.id = 'cart-count';
+                    cartCountEl.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    cartCountEl.style.fontSize = '0.8rem';
+                    cartCountEl.style.zIndex = '1001';
+                    cartIcon.parentNode.style.position = 'relative';
+                    cartIcon.parentNode.appendChild(cartCountEl);
+                }
+            }
+            if (cartCountEl) {
+                cartCountEl.textContent = count;
+                cartCountEl.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+        function updateCartTotal() {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            let total = 0;
+            cart.forEach(item => {
+                total += item.prix * item.quantite;
+            });
+            // Affichage dans le mini-panier (à faire dans le header)
+            let cartTotalEl = document.getElementById('cart-total');
+            if (cartTotalEl) {
+                cartTotalEl.textContent = total.toFixed(2) + ' DT';
+            }
+        }
+        // Initialiser le compteur au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+            updateCartTotal();
+        });
         function showToast(message, type = 'primary') {
             const toastEl = document.getElementById('mainToast');
             const toastBody = document.getElementById('mainToastBody');
