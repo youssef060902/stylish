@@ -339,10 +339,41 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <!-- Modal de confirmation suppression avis -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmDeleteLabel">Confirmation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">
+            Voulez-vous vraiment supprimer cet avis ?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Lightbox pour la galerie d'images -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
         <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
         <img src="" alt="Agrandissement" id="lightbox-img">
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+      <div id="mainToast" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="mainToastBody">
+            <!-- Message ici -->
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+      </div>
     </div>
 
     <?php include 'footer.php'; ?>
@@ -369,6 +400,14 @@ if (isset($_SESSION['user_id'])) {
             // Implémenter la logique d'ajout au panier
             alert('Produit ajouté au panier !');
         }
+        function showToast(message, type = 'primary') {
+            const toastEl = document.getElementById('mainToast');
+            const toastBody = document.getElementById('mainToastBody');
+            toastBody.textContent = message;
+            toastEl.className = 'toast align-items-center text-bg-' + type + ' border-0';
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
         function toggleFavorite(productId) {
             fetch('toggle_favorite.php', {
                 method: 'POST',
@@ -380,7 +419,6 @@ if (isset($_SESSION['user_id'])) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
                     const heart = document.getElementById('favorite-heart');
                     if (heart) {
                         if (data.isFavorite) {
@@ -389,12 +427,13 @@ if (isset($_SESSION['user_id'])) {
                             heart.style.display = 'none';
                         }
                     }
+                    showToast(data.message, data.isFavorite ? 'success' : 'danger');
                 } else {
-                    alert(data.message);
+                    showToast(data.message, 'danger');
                 }
             })
             .catch(error => {
-                alert('Erreur lors de la mise à jour des favoris.');
+                showToast('Erreur lors de la mise à jour des favoris.', 'danger');
             });
         }
         function submitReview() {
@@ -406,16 +445,16 @@ if (isset($_SESSION['user_id'])) {
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message)
                 if (data.success) {
                     form.reset();
+                    showToast(data.message || 'Avis ajouté avec succès !', 'success');
                     location.reload();
                 } else {
-                    alert(data.message); // supprimé pour silence
+                    showToast(data.message || 'Erreur lors de l\'ajout de l\'avis.', 'danger');
                 }
             })
             .catch(error => {
-                alert('Une erreur est survenue lors de l\'ajout de l\'avis.'); // supprimé pour silence
+                showToast('Une erreur est survenue lors de l\'ajout de l\'avis.', 'danger');
             });
         }
         function openEditReviewModalFromBtn(btn) {
@@ -441,20 +480,6 @@ if (isset($_SESSION['user_id'])) {
             var modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
             modal.show();
         }
-        function deleteReview(id) {
-            if (!confirm('Voulez-vous vraiment supprimer cet avis ?')) return;
-            fetch('delete_review.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                if (data.success) location.reload();
-            })
-            .catch(() => alert('Erreur lors de la suppression.'));
-        }
         function submitEditReview() {
             const id = document.getElementById('editReviewId').value;
             const radios = document.getElementsByName('edit_rating');
@@ -468,11 +493,40 @@ if (isset($_SESSION['user_id'])) {
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message);
+                showToast(data.message, data.success ? 'success' : 'danger');
                 if (data.success) location.reload();
             })
-            .catch(() => alert('Erreur lors de la modification.'));
+            .catch(() => showToast('Erreur lors de la modification.', 'danger'));
         }
+        let reviewToDelete = null;
+        function deleteReview(id) {
+            reviewToDelete = id;
+            var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            modal.show();
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    if (!reviewToDelete) return;
+                    fetch('delete_review.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: reviewToDelete })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showToast(data.message, data.success ? 'success' : 'danger');
+                        if (data.success) location.reload();
+                    })
+                    .catch(() => showToast('Erreur lors de la suppression.', 'danger'));
+                    // Fermer la modale
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                    modal.hide();
+                    reviewToDelete = null;
+                };
+            }
+        });
     </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
