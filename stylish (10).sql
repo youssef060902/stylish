@@ -103,8 +103,8 @@ CREATE TABLE `panier` (
   `id` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
   `id_produit` int(11) NOT NULL,
-  `quantite` int(11) DEFAULT 1,
   `id_pointure` int(11) DEFAULT NULL,
+  `quantite` int(11) DEFAULT 1,
   `date_ajout` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
