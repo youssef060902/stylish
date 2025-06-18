@@ -191,10 +191,13 @@ if ($product['discount'] > 0) {
                             data-id="<?php echo $review['id']; ?>"
                             data-note="<?php echo $review['note']; ?>"
                             data-commentaire="<?php echo htmlspecialchars($review['commentaire'], ENT_QUOTES); ?>"
-                            onclick="openEditReviewModalFromBtn(this)">
-                            Modifier
+                            onclick="openEditReviewModalFromBtn(this)"
+                            title="Modifier">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19.5 3 21l1.5-4L16.5 3.5z"/></svg>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteReview(<?php echo $review['id']; ?>)">Supprimer</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteReview(<?php echo $review['id']; ?>)" title="Supprimer">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                        </button>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -236,7 +239,9 @@ if ($product['discount'] > 0) {
                             <div class="rating">
                                 <?php for ($i = 5; $i >= 1; $i--): ?>
                                 <input type="radio" name="rating" value="<?php echo $i; ?>" id="star<?php echo $i; ?>" required>
-                                <label for="star<?php echo $i; ?>"><i class="fas fa-star"></i></label>
+                                <label for="star<?php echo $i; ?>">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ddd" stroke="#ddd" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                                </label>
                                 <?php endfor; ?>
                             </div>
                         </div>
@@ -267,7 +272,14 @@ if ($product['discount'] > 0) {
                         <input type="hidden" id="editReviewId" name="id">
                         <div class="mb-3">
                             <label class="form-label">Note</label>
-                            <input type="number" min="1" max="5" class="form-control" id="editReviewRating" name="note" required>
+                            <div class="rating">
+                                <?php for ($i = 5; $i >= 1; $i--): ?>
+                                <input type="radio" name="edit_rating" value="<?php echo $i; ?>" id="edit_star<?php echo $i; ?>">
+                                <label for="edit_star<?php echo $i; ?>">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ddd" stroke="#ddd" stroke-width="1"><polygon points="12,2 15,9 22,9.3 17,14.1 18.5,21 12,17.8 5.5,21 7,14.1 2,9.3 9,9"/></svg>
+                                </label>
+                                <?php endfor; ?>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Commentaire</label>
@@ -357,8 +369,12 @@ if ($product['discount'] > 0) {
         }
         function openEditReviewModalFromBtn(btn) {
             document.getElementById('editReviewId').value = btn.getAttribute('data-id');
-            document.getElementById('editReviewRating').value = btn.getAttribute('data-note');
-            document.getElementById('editReviewComment').value = btn.getAttribute('data-commentaire');
+            var note = btn.getAttribute('data-note');
+            var commentaire = btn.getAttribute('data-commentaire');
+            document.getElementById('editReviewComment').value = commentaire;
+            // Cocher la bonne étoile
+            var radios = document.getElementsByName('edit_rating');
+            radios.forEach(r => { r.checked = (r.value == note); });
             var modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
             modal.show();
         }
@@ -378,7 +394,9 @@ if ($product['discount'] > 0) {
         }
         function submitEditReview() {
             const id = document.getElementById('editReviewId').value;
-            const note = document.getElementById('editReviewRating').value;
+            const radios = document.getElementsByName('edit_rating');
+            let note = 0;
+            radios.forEach(r => { if (r.checked) note = r.value; });
             const commentaire = document.getElementById('editReviewComment').value;
             fetch('edit_review.php', {
                 method: 'POST',
@@ -392,6 +410,27 @@ if ($product['discount'] > 0) {
             })
             .catch(() => alert('Erreur lors de la modification.'));
         }
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateStars(name) {
+                const radios = document.getElementsByName(name);
+                radios.forEach((radio, idx) => {
+                    radio.addEventListener('change', function() {
+                        radios.forEach((r, i) => {
+                            const svg = r.nextElementSibling.querySelector('svg');
+                            if (i <= (5 - radio.value)) {
+                                svg.setAttribute('fill', '#ffc107');
+                                svg.setAttribute('stroke', '#ffc107');
+                            } else {
+                                svg.setAttribute('fill', '#ddd');
+                                svg.setAttribute('stroke', '#ddd');
+                            }
+                        });
+                    });
+                });
+            }
+            updateStars('rating');
+            updateStars('edit_rating');
+        });
     </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
