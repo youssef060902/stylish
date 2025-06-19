@@ -139,6 +139,9 @@ if (isset($_SESSION['user_id'])) {
                 <div class="product-info">
                     <h1 class="product-title">
                         <?php echo htmlspecialchars($product['nom']); ?>
+                        <?php if ($product['statut'] === 'rupture de stock'): ?>
+                            <span class="badge bg-danger ms-2" style="font-size:1rem;">Rupture de stock</span>
+                        <?php endif; ?>
                         <span id="favorite-heart" style="display:<?php echo $isFavorite ? 'inline-block' : 'none'; ?>">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-left:8px;"><path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z"/></svg>
                         </span>
@@ -197,9 +200,12 @@ if (isset($_SESSION['user_id'])) {
                     </div>
 
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="openAddToCartModal()">
+                        <button class="btn btn-primary"
+                                onclick="openAddToCartModal()"
+                                <?php if ($product['statut'] === 'rupture de stock') echo 'disabled'; ?>>
                             <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Ajouter au panier
                         </button>
+                       
                         <button class="btn btn-outline-danger" onclick="toggleFavorite(<?php echo $product['id']; ?>)">
                             <svg class="icon me-2" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21C12 21 4 13.36 4 8.5C4 5.42 6.42 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.58 3 24 5.42 24 8.5C24 13.36 16 21 16 21H12Z" stroke-linecap="round" stroke-linejoin="round"/></svg>Ajouter aux favoris
                         </button>

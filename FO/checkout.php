@@ -81,6 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
                 // Décrémenter aussi la quantité globale du produit
                 $stmt = $pdo->prepare("UPDATE produit SET quantité = quantité - ? WHERE id = ?");
                 $stmt->execute([$row['quantite'], $row['id_produit']]);
+                // Si la quantité devient 0 ou moins, mettre le statut à 'rupture de stock'
+                $stmt = $pdo->prepare("SELECT quantité FROM produit WHERE id = ?");
+                $stmt->execute([$row['id_produit']]);
+                $prod = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($prod && $prod['quantité'] <= 0) {
+                    $stmt = $pdo->prepare("UPDATE produit SET statut = 'rupture de stock' WHERE id = ?");
+                    $stmt->execute([$row['id_produit']]);
+                }
             }
             $stmt = $pdo->prepare("DELETE FROM panier WHERE id_user = ?");
             $stmt->execute([$user_id]);
