@@ -1755,6 +1755,15 @@ if (isset($_SESSION['user_id'])) {
                       </a>
                     </li>
                     <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="mes_commandes.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708l1.146 1.147 2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                          <path d="M1.5 2.5A.5.5 0 0 1 2 2h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 6h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 10h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                        Mes commandes
+                      </a>
+                    </li>
+                    <li>
                       <a class="dropdown-item d-flex align-items-center gap-2" href="favorites.php">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
                           <path d="m8 2.748-.717-.737C5.6.281 2.514 3.053 3.824 6.143c.636 1.528 2.293 3.356 4.176 4.857 1.883-1.5 3.54-3.329 4.176-4.857C13.486 3.053 10.4.28 8.717 2.01L8 2.748zm0 8.684C-7.333 3.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171.057-.059.116-.116.176-.171C12.721-3.042 23.333 3.868 8 11.432z"/>
