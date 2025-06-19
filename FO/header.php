@@ -3500,7 +3500,7 @@ window.updateCartTotal = updateCartTotalHeader;
         </div>
       </div>
       <div class="modal-footer bg-white">
-        <a href="checkout.php" class="btn btn-primary w-100" style="background:#e74c3c;border:none;border-radius:8px;font-weight:600;">Commander</a>
+        <button id="checkout-btn" class="btn btn-primary w-100" style="background:#e74c3c;border:none;border-radius:8px;font-weight:600;">Passer à la caisse</button>
       </div>
     </div>
   </div>
@@ -3536,6 +3536,26 @@ function renderCartModal() {
     if (cartTotalEl) {
         cartTotalEl.textContent = total.toFixed(2) + ' DT';
     }
+    // Ajout de l'eventListener sur le bouton Commander à chaque rendu
+    let checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.onclick = function(e) {
+            e.preventDefault();
+            fetch('cart.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'action=check_stock'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'checkout.php';
+                } else {
+                    showToast(data.message || 'Stock insuffisant pour un ou plusieurs articles.', 'danger');
+                }
+            });
+        };
+    }
 }
 
 function updateCartQuantity(id_produit, id_pointure, quantite) {
@@ -3552,9 +3572,24 @@ function updateCartQuantity(id_produit, id_pointure, quantite) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            window.sessionCart = data.cart;
-            renderCartModal();
-            updateCartCountHeader();
+            updateCartFromServer(); // Affichage immédiat
+        } else {
+            // Chercher la valeur max dans le message d'erreur
+            let match = data.message && data.message.match(/max[ :]+(\d+)/i);
+            if (match) {
+                let max = parseInt(match[1]);
+                // Trouver l'input correspondant dans la modale (plus robuste)
+                let cartItemsList = document.getElementById('cart-items-list-modal');
+                if (cartItemsList) {
+                    let inputs = cartItemsList.querySelectorAll('input[type="number"]');
+                    inputs.forEach(input => {
+                        if (input.getAttribute('onchange') && input.getAttribute('onchange').includes(id_produit) && input.getAttribute('onchange').includes(id_pointure)) {
+                            input.value = max;
+                        }
+                    });
+                }
+            }
+            showToast(data.message || 'Erreur lors de la modification.', 'danger');
         }
     });
 }
@@ -3572,9 +3607,7 @@ function removeCartItem(id_produit, id_pointure) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            window.sessionCart = data.cart;
-            renderCartModal();
-            updateCartCountHeader();
+            updateCartFromServer(); // Affichage immédiat
         }
     });
 }
@@ -3661,6 +3694,23 @@ function updateCartQuantity(id_produit, id_pointure, quantite) {
     .then(data => {
         if (data.success) {
             updateCartFromServer(); // Affichage immédiat
+        } else {
+            // Chercher la valeur max dans le message d'erreur
+            let match = data.message && data.message.match(/max[ :]+(\d+)/i);
+            if (match) {
+                let max = parseInt(match[1]);
+                // Trouver l'input correspondant dans la modale (plus robuste)
+                let cartItemsList = document.getElementById('cart-items-list-modal');
+                if (cartItemsList) {
+                    let inputs = cartItemsList.querySelectorAll('input[type="number"]');
+                    inputs.forEach(input => {
+                        if (input.getAttribute('onchange') && input.getAttribute('onchange').includes(id_produit) && input.getAttribute('onchange').includes(id_pointure)) {
+                            input.value = max;
+                        }
+                    });
+                }
+            }
+            showToast(data.message || 'Erreur lors de la modification.', 'danger');
         }
     });
 }
@@ -3701,6 +3751,8 @@ function updateCartFromServer(callback) {
         }
     });
 }
+
+
 // ...</script> 
 </body>
 </html>
