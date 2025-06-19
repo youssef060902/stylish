@@ -3450,13 +3450,21 @@ if (cartToggle && cartDropdown) {
 }
 // Mettre à jour le badge et le total au chargement
 function updateCartCountHeader() {
+    if (typeof isUserLoggedIn !== 'undefined' && !isUserLoggedIn) {
+        let cartCountEl = document.getElementById('cart-count');
+        if (cartCountEl) cartCountEl.style.display = 'none';
+        return;
+    }
     let cart = window.sessionCart || [];
-    let count = cart.length;
-    let cartCountEl = document.getElementById('cart-count');
-    if (cartCountEl) {
+    let count = 0;
+    cart.forEach(item => { count += parseInt(item.quantite); });
+    let cartCountEls = document.querySelectorAll('#cart-count');
+    console.log('[DEBUG] updateCartCountHeader - sessionCart:', cart, 'count:', count, 'nb #cart-count:', cartCountEls.length);
+    cartCountEls.forEach(cartCountEl => {
         cartCountEl.textContent = count;
         cartCountEl.style.display = count > 0 ? 'inline-block' : 'none';
-    }
+        console.log('[DEBUG] Badge text now:', cartCountEl.textContent);
+    });
 }
 function updateCartTotalHeader() {
   let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -3508,35 +3516,36 @@ function renderCartModal() {
     if (cart.length === 0) {
         cartItemsList.innerHTML = '<div class="text-center text-muted">Votre panier est vide.</div>';
     } else {
-        cartItemsList.innerHTML = cart.map((item, idx) => `
-            <div class="d-flex align-items-center mb-2" data-idx="${idx}">
+        cartItemsList.innerHTML = cart.map(item => `
+            <div class="d-flex align-items-center mb-2">
                 <img src="${item.image}" alt="${item.nom}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:10px;">
                 <div class="flex-grow-1">
                     <div class="fw-semibold">${item.nom}</div>
                     <div class="small text-muted">Pointure : ${item.pointure}</div>
-                    <input type="number" class="form-control form-control-sm input-qty mt-1" min="1" value="${item.quantite}" data-idx="${idx}" style="width:60px;max-width:100%;display:inline-block;" onchange="updateCartQuantity(${idx}, this.value)">
+                    <input type="number" class="form-control form-control-sm input-qty mt-1" min="1" value="${item.quantite}" style="width:60px;max-width:100%;display:inline-block;" onchange="updateCartQuantity(${item.id_produit}, ${item.id_pointure}, this.value)">
                 </div>
-                <div class="fw-bold ms-2" style="min-width:70px;">${(item.prix * item.quantite).toFixed(2)} DT</div>
-                <button class="btn btn-link text-danger btn-remove-item ms-2 p-0" data-idx="${idx}" title="Supprimer" onclick="removeCartItem(${idx})">
+                <div class="fw-bold ms-2" style="min-width:70px;">${(item.prix_final * item.quantite).toFixed(2)} DT</div>
+                <button class="btn btn-link text-danger btn-remove-item ms-2 p-0" title="Supprimer" onclick="removeCartItem(${item.id_produit}, ${item.id_pointure})">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 </button>
             </div>
         `).join('');
     }
-    cart.forEach(item => { total += item.prix * item.quantite; });
+    cart.forEach(item => { total += (item.prix_final || item.prix) * item.quantite; });
     let cartTotalEl = document.getElementById('cart-total-modal');
     if (cartTotalEl) {
         cartTotalEl.textContent = total.toFixed(2) + ' DT';
     }
 }
 
-function updateCartQuantity(idx, quantite) {
+function updateCartQuantity(id_produit, id_pointure, quantite) {
     fetch('cart.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams({
             action: 'update',
-            idx: idx,
+            id: id_produit,
+            pointure: id_pointure,
             quantite: quantite
         })
     })
@@ -3550,13 +3559,14 @@ function updateCartQuantity(idx, quantite) {
     });
 }
 
-function removeCartItem(idx) {
+function removeCartItem(id_produit, id_pointure) {
     fetch('cart.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams({
             action: 'remove',
-            idx: idx
+            id: id_produit,
+            pointure: id_pointure
         })
     })
     .then(r => r.json())
@@ -3580,11 +3590,117 @@ const cartModalToggle = document.getElementById('cartModalToggle');
 if (cartModalToggle) {
   cartModalToggle.addEventListener('click', function(e) {
     e.preventDefault();
+    if (typeof isUserLoggedIn !== 'undefined' && !isUserLoggedIn) {
+      var loginModal = new bootstrap.Modal(document.getElementById('modallogin'));
+      loginModal.show();
+      return;
+    }
     renderCartModal();
     var modal = new bootstrap.Modal(document.getElementById('cartModal'));
     modal.show();
   });
 }
-</script>
+
+function updateCartCountHeader() {
+    if (typeof isUserLoggedIn !== 'undefined' && !isUserLoggedIn) {
+        let cartCountEl = document.getElementById('cart-count');
+        if (cartCountEl) cartCountEl.style.display = 'none';
+        return;
+    }
+    let cart = window.sessionCart || [];
+    let count = 0;
+    cart.forEach(item => { count += parseInt(item.quantite); });
+    let cartCountEl = document.getElementById('cart-count');
+    if (cartCountEl) {
+        cartCountEl.textContent = count;
+        cartCountEl.style.display = 'inline-block';
+    }
+}
+// ... existing code ...
+
+
+// ... existing code ...
+// Correction : Ajout au panier (submitAddToCart) doit mettre à jour le panier immédiatement
+function submitAddToCart(id_produit, id_pointure, quantite) {
+    fetch('cart.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            action: 'add',
+            id: id_produit,
+            pointure: id_pointure,
+            quantite: quantite
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            updateCartFromServer(); // Met à jour le panier immédiatement
+            showToast('Produit ajouté au panier !', 'success');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
+            if (modal) modal.hide();
+        } else {
+            showToast(data.message || 'Erreur lors de l\'ajout.', 'danger');
+        }
+    });
+}
+
+// Correction : updateCartQuantity et removeCartItem appellent updateCartFromServer pour affichage immédiat
+function updateCartQuantity(id_produit, id_pointure, quantite) {
+    fetch('cart.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            action: 'update',
+            id: id_produit,
+            pointure: id_pointure,
+            quantite: quantite
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            updateCartFromServer(); // Affichage immédiat
+        }
+    });
+}
+
+function removeCartItem(id_produit, id_pointure) {
+    fetch('cart.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            action: 'remove',
+            id: id_produit,
+            pointure: id_pointure
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            updateCartFromServer(); // Affichage immédiat
+        }
+    });
+}
+
+// Correction : updateCartFromServer appelle renderCartModal à chaque fois
+function updateCartFromServer(callback) {
+    fetch('cart.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'action=get'
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log('updateCartFromServer - data:', data); // DEBUG
+        if (data.success) {
+            window.sessionCart = data.cart;
+            renderCartModal(); // Affichage immédiat
+            if (typeof updateCartCountHeader === 'function') updateCartCountHeader();
+            if (typeof callback === 'function') callback(data.cart);
+        }
+    });
+}
+// ...</script> 
 </body>
 </html>

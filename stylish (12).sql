@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 19 juin 2025 à 02:37
+-- Généré le : jeu. 19 juin 2025 à 03:06
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -147,6 +147,20 @@ INSERT INTO `images_produits` (`id`, `id_produit`, `URL_Image`, `Legende`) VALUE
 (127, 57, 'http://localhost/img/6852cf70341ed_author-item.jpg', NULL),
 (128, 57, 'http://localhost/img/6852cf7036342_banner-image3.jpg', NULL),
 (129, 57, 'http://localhost/img/6852cf703754f_card-image1.jpg', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `panier`
+--
+
+CREATE TABLE `panier` (
+  `id_user` int(11) NOT NULL,
+  `id_produit` int(11) NOT NULL,
+  `id_pointure` int(11) NOT NULL,
+  `quantite` int(11) NOT NULL,
+  `date_ajout` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -376,6 +390,14 @@ ALTER TABLE `images_produits`
   ADD KEY `images_produits_ibfk_1` (`id_produit`);
 
 --
+-- Index pour la table `panier`
+--
+ALTER TABLE `panier`
+  ADD PRIMARY KEY (`id_user`,`id_produit`,`id_pointure`),
+  ADD KEY `id_produit` (`id_produit`),
+  ADD KEY `id_pointure` (`id_pointure`);
+
+--
 -- Index pour la table `pointures`
 --
 ALTER TABLE `pointures`
@@ -511,6 +533,14 @@ ALTER TABLE `favoris`
 --
 ALTER TABLE `images_produits`
   ADD CONSTRAINT `images_produits_ibfk_1` FOREIGN KEY (`id_produit`) REFERENCES `produit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Contraintes pour la table `panier`
+--
+ALTER TABLE `panier`
+  ADD CONSTRAINT `panier_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`),
+  ADD CONSTRAINT `panier_ibfk_2` FOREIGN KEY (`id_produit`) REFERENCES `produit` (`id`),
+  ADD CONSTRAINT `panier_ibfk_3` FOREIGN KEY (`id_pointure`) REFERENCES `pointures` (`id`);
 
 --
 -- Contraintes pour la table `pointure_produit`

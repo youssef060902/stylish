@@ -2,66 +2,83 @@
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
+$host = 'localhost';
+$dbname = 'stylish';
+$username = 'root';
+$password = '';
+$pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+
+$user_id = $_SESSION['user_id'] ?? null;
+if (!$user_id) {
     echo json_encode(['success' => false, 'message' => 'Non connecté']);
     exit;
 }
 
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+if ($action === 'add') {
+    file_put_contents('debug_cart.log', "ADD: ".print_r($_POST, true), FILE_APPEND);
+    $id_produit = intval($_POST['id']);
+    $id_pointure = intval($_POST['pointure']);
+    $quantite = intval($_POST['quantite']);
+    // Vérifier si déjà présent
+    $stmt = $pdo->prepare("SELECT quantite FROM panier WHERE id_user=? AND id_produit=? AND id_pointure=?");
+    $stmt->execute([$user_id, $id_produit, $id_pointure]);
+    if ($row = $stmt->fetch()) {
+        // Update
+        $stmt = $pdo->prepare("UPDATE panier SET quantite = quantite + ? WHERE id_user=? AND id_produit=? AND id_pointure=?");
+        $stmt->execute([$quantite, $user_id, $id_produit, $id_pointure]);
+    } else {
+        // Insert
+        $stmt = $pdo->prepare("INSERT INTO panier (id_user, id_produit, id_pointure, quantite) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$user_id, $id_produit, $id_pointure, $quantite]);
+    }
+    echo json_encode(['success' => true]);
+    exit;
 }
 
-$action = $_POST['action'] ?? ($_GET['action'] ?? 'get');
+if ($action === 'update') {
+    file_put_contents('debug_cart.log', "UPDATE: ".print_r($_POST, true), FILE_APPEND);
+    $id_produit = intval($_POST['id']);
+    $id_pointure = intval($_POST['pointure']);
+    $quantite = intval($_POST['quantite']);
+    $stmt = $pdo->prepare("UPDATE panier SET quantite=? WHERE id_user=? AND id_produit=? AND id_pointure=?");
+    $stmt->execute([$quantite, $user_id, $id_produit, $id_pointure]);
+    echo json_encode(['success' => true]);
+    exit;
+}
 
-switch ($action) {
-    case 'add':
-        $id = intval($_POST['id']);
-        $nom = $_POST['nom'];
-        $prix = floatval($_POST['prix']);
-        $image = $_POST['image'];
-        $pointure = $_POST['pointure'];
-        $quantite = intval($_POST['quantite']);
-        // Cherche si déjà présent
-        $found = false;
-        foreach ($_SESSION['cart'] as &$item) {
-            if ($item['id'] == $id && $item['pointure'] == $pointure) {
-                $item['quantite'] += $quantite;
-                $found = true;
-                break;
-            }
-        }
-        if (!$found) {
-            $_SESSION['cart'][] = [
-                'id' => $id,
-                'nom' => $nom,
-                'prix' => $prix,
-                'image' => $image,
-                'pointure' => $pointure,
-                'quantite' => $quantite
-            ];
-        }
-        echo json_encode(['success' => true, 'cart' => $_SESSION['cart']]);
-        break;
+if ($action === 'remove') {
+    file_put_contents('debug_cart.log', "REMOVE: ".print_r($_POST, true), FILE_APPEND);
+    $id_produit = intval($_POST['id']);
+    $id_pointure = intval($_POST['pointure']);
+    $stmt = $pdo->prepare("DELETE FROM panier WHERE id_user=? AND id_produit=? AND id_pointure=?");
+    $stmt->execute([$user_id, $id_produit, $id_pointure]);
+    echo json_encode(['success' => true]);
+    exit;
+}
 
-    case 'update':
-        $idx = intval($_POST['idx']);
-        $quantite = intval($_POST['quantite']);
-        if (isset($_SESSION['cart'][$idx])) {
-            $_SESSION['cart'][$idx]['quantite'] = max(1, $quantite);
-        }
-        echo json_encode(['success' => true, 'cart' => $_SESSION['cart']]);
-        break;
+if ($action === 'get') {
+    // On récupère les infos produit pour chaque ligne du panier, y compris la valeur de la pointure
+    $stmt = $pdo->prepare("
+        SELECT pa.id_produit, pa.id_pointure, pa.quantite, 
+               p.nom, p.prix, p.id_promotion, pr.discount, 
+               (SELECT URL_Image FROM images_produits WHERE id_produit = p.id LIMIT 1) as image,
+               po.pointure
+        FROM panier pa
+        JOIN produit p ON pa.id_produit = p.id
+        LEFT JOIN promotion pr ON p.id_promotion = pr.id
+        JOIN pointures po ON pa.id_pointure = po.id
+        WHERE pa.id_user = ?
+    ");
+    $stmt->execute([$user_id]);
+    $cart = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // On utilise TOUJOURS le prix de la base, sans appliquer de promotion
+    foreach ($cart as &$item) {
+        $item['prix_final'] = $item['prix'];
+    }
+    echo json_encode(['success' => true, 'cart' => $cart]);
+    exit;
+}
 
-    case 'remove':
-        $idx = intval($_POST['idx']);
-        if (isset($_SESSION['cart'][$idx])) {
-            array_splice($_SESSION['cart'], $idx, 1);
-        }
-        echo json_encode(['success' => true, 'cart' => $_SESSION['cart']]);
-        break;
-
-    case 'get':
-    default:
-        echo json_encode(['success' => true, 'cart' => $_SESSION['cart']]);
-        break;
-} 
+echo json_encode(['success' => false, 'message' => 'Action inconnue']); 

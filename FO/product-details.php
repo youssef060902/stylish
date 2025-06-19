@@ -51,14 +51,14 @@ $reviews = $stmt_reviews->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupération des pointures disponibles
 $stmt_sizes = $pdo->prepare("
-    SELECT p.pointure 
+    SELECT p.id, p.pointure 
     FROM pointure_produit pp
     JOIN pointures p ON pp.id_pointure = p.id
     WHERE pp.id_produit = ? AND pp.stock > 0
     ORDER BY p.pointure ASC
 ");
 $stmt_sizes->execute([$productId]);
-$sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
+$sizes = $stmt_sizes->fetchAll(PDO::FETCH_ASSOC);
 
 // Calcul du prix avec promotion
 $prix_promo = $product['prix'];
@@ -184,7 +184,7 @@ if (isset($_SESSION['user_id'])) {
                             <div class="meta-label">Pointures disponibles</div>
                             <div class="meta-value">
                                 <?php foreach ($sizes as $size): ?>
-                                    <span class="badge bg-light text-dark border me-1 mb-1"><?php echo htmlspecialchars($size); ?></span>
+                                    <span class="badge bg-light text-dark border me-1 mb-1"><?php echo htmlspecialchars($size['pointure']); ?></span>
                                 <?php endforeach; ?>
                             </div>
                         </div>
@@ -391,7 +391,9 @@ if (isset($_SESSION['user_id'])) {
                             <select class="form-select" name="pointure" id="cartPointure" required>
                                 <option value="">Sélectionner une pointure</option>
                                 <?php foreach ($sizes as $size): ?>
-                                    <option value="<?php echo htmlspecialchars($size); ?>"><?php echo htmlspecialchars($size); ?></option>
+                                    <option value="<?php echo (int)$size['id']; ?>">
+                                        <?php echo htmlspecialchars($size['pointure']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -449,9 +451,6 @@ if (isset($_SESSION['user_id'])) {
             }
             const product = {
                 id: <?php echo $product['id']; ?>,
-                nom: <?php echo json_encode($product['nom']); ?>,
-                prix: <?php echo $prix_promo; ?>,
-                image: <?php echo json_encode($images[0] ?? 'images/no-image.jpg'); ?>,
                 pointure: pointure,
                 quantite: quantite
             };
@@ -467,26 +466,11 @@ if (isset($_SESSION['user_id'])) {
             .then(data => {
                 if (data.success) {
                     showToast('Produit ajouté au panier !', 'success');
-                    updateCartFromServer();
+                    if (typeof updateCartFromServer === 'function') updateCartFromServer();
                     var modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
-                    modal.hide();
+                    if (modal) modal.hide();
                 } else {
                     showToast(data.message || 'Erreur lors de l\'ajout.', 'danger');
-                }
-            });
-        }
-        function updateCartFromServer(callback) {
-            fetch('cart.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'action=get'
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    window.sessionCart = data.cart;
-                    if (typeof updateCartCountHeader === 'function') updateCartCountHeader();
-                    if (typeof callback === 'function') callback(data.cart);
                 }
             });
         }

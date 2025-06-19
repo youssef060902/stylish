@@ -1,0 +1,93 @@
+ADD: Array
+(
+    [action] => add
+    [id] => 55
+    [pointure] => 16
+    [quantite] => 3
+)
+UPDATE: Array
+(
+    [action] => update
+    [id] => 54
+    [pointure] => 20
+    [quantite] => 2
+)
+UPDATE: Array
+(
+    [action] => update
+    [id] => 54
+    [pointure] => 20
+    [quantite] => 3
+)
+REMOVE: Array
+(
+    [action] => remove
+    [id] => 54
+    [pointure] => 20
+)
+ADD: Array
+(
+    [action] => add
+    [id] => 54
+    [pointure] => 20
+    [quantite] => 1
+)
+REMOVE: Array
+(
+    [action] => remove
+    [id] => 55
+    [pointure] => 16
+)
+UPDATE: Array
+(
+    [action] => update
+    [id] => 54
+    [pointure] => 20
+    [quantite] => 2
+)
+ADD: Array
+(
+    [action] => add
+    [id] => 52
+    [pointure] => 17
+    [quantite] => 1
+)
+REMOVE: Array
+(
+    [action] => remove
+    [id] => 52
+    [pointure] => 17
+)
+REMOVE: Array
+(
+    [action] => remove
+    [id] => 54
+    [pointure] => 20
+)
+ADD: Array
+(
+    [action] => add
+    [id] => 52
+    [pointure] => 18
+    [quantite] => 1
+)
+UPDATE: Array
+(
+    [action] => update
+    [id] => 52
+    [pointure] => 18
+    [quantite] => 4
+)
+UPDATE: Array
+(
+    [action] => update
+    [id] => 52
+    [pointure] => 18
+    [quantite] => 8
+)
+REMOVE: Array
+(
+    [action] => remove
+    [id] => 52
+    [pointure] => 18
+)
