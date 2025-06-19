@@ -214,6 +214,48 @@ if (isset($_SESSION['user_id'])) {
       padding-top: var(--navbar-height);
     }
 
+    .user-items .shopping-cart,
+.user-items .user {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.user-items .nav-link,
+.user-items a.border-0 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  margin: 0 2px;
+  background: var(--light-bg);
+  border-radius: 50%;
+}
+.user-items .nav-link svg,
+.user-items a.border-0 svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  margin: 0 auto;
+  vertical-align: middle;
+}
+#cart-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  z-index: 2;
+  font-size: 0.85rem;
+  min-width: 20px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
     /* Styles de la barre de navigation */
     #header-nav {
       background: linear-gradient(to right, #ffffff, #f8f9fa);

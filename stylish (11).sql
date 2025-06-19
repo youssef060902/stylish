@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mar. 17 juin 2025 à 19:08
+-- Généré le : jeu. 19 juin 2025 à 02:37
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -56,6 +56,45 @@ CREATE TABLE `avis` (
   `date_modification` datetime DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `avis`
+--
+
+INSERT INTO `avis` (`id`, `id_produit`, `id_user`, `note`, `commentaire`, `date_creation`, `date_modification`) VALUES
+(7, 54, 90, 5, 'good', '2025-06-18 01:55:12', '2025-06-18 01:57:49'),
+(12, 52, 89, 5, 'good', '2025-06-18 15:30:47', NULL),
+(13, 57, 90, 3, 'kkkkkk', '2025-06-18 20:35:52', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `commande`
+--
+
+CREATE TABLE `commande` (
+  `id` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL,
+  `date_commande` datetime NOT NULL DEFAULT current_timestamp(),
+  `total` decimal(10,2) NOT NULL,
+  `statut` enum('en attente','confirmé','en cours','livré') NOT NULL DEFAULT 'en attente',
+  `adresse_livraison` varchar(255) NOT NULL,
+  `date_livraison` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `commande_produit`
+--
+
+CREATE TABLE `commande_produit` (
+  `id_commande` int(11) NOT NULL,
+  `id_produit` int(11) NOT NULL,
+  `id_pointure` int(11) NOT NULL,
+  `prix_unitaire` decimal(10,2) NOT NULL,
+  `quantite` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- --------------------------------------------------------
 
 --
@@ -68,6 +107,16 @@ CREATE TABLE `favoris` (
   `date_ajout` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `favoris`
+--
+
+INSERT INTO `favoris` (`id_user`, `id_produit`, `date_ajout`) VALUES
+(89, 50, '2025-06-18 13:45:09'),
+(89, 52, '2025-06-18 15:30:33'),
+(89, 54, '2025-06-18 13:15:18'),
+(90, 54, '2025-06-19 00:10:57');
+
 -- --------------------------------------------------------
 
 --
@@ -78,7 +127,7 @@ CREATE TABLE `images_produits` (
   `id` int(11) NOT NULL,
   `id_produit` int(11) DEFAULT NULL,
   `URL_Image` varchar(255) NOT NULL,
-  `Legende` varchar(100) DEFAULT NULL
+  `Legende` varchar(5) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -86,27 +135,18 @@ CREATE TABLE `images_produits` (
 --
 
 INSERT INTO `images_produits` (`id`, `id_produit`, `URL_Image`, `Legende`) VALUES
-(108, 50, 'http://localhost/img/68488e54623fc_Capture d\'écran 2025-06-07 222039.png', NULL),
-(112, 55, 'http://localhost/img/6848b049d77d7_Capture d\'écran 2025-06-07 222039.png', NULL),
-(113, 55, 'http://localhost/img/6848b049d8033_Capture d\'écran 2025-06-07 222547.png', NULL),
 (114, 54, 'http://localhost/img/6848ca51bce58_Capture d\'écran 2025-06-09 142902.png', NULL),
-(115, 53, 'http://localhost/img/6849f322e5386_Capture d\'écran 2025-06-09 142902.png', NULL),
-(116, 52, 'http://localhost/img/684a186fbcaf0_Capture d\'écran 2025-06-09 142902.png', NULL);
-
--- --------------------------------------------------------
-
---
--- Structure de la table `panier`
---
-
-CREATE TABLE `panier` (
-  `id` int(11) NOT NULL,
-  `id_user` int(11) NOT NULL,
-  `id_produit` int(11) NOT NULL,
-  `id_pointure` int(11) DEFAULT NULL,
-  `quantite` int(11) DEFAULT 1,
-  `date_ajout` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(119, 55, 'http://localhost/img/6851e81d845f6_card-image1.jpg', NULL),
+(120, 50, 'http://localhost/img/6851e83211a72_card-large-item8.jpg', NULL),
+(121, 52, 'http://localhost/img/6851e8425903b_card-image6.jpg', NULL),
+(122, 53, 'http://localhost/img/6851e856343d3_card-image3.jpg', NULL),
+(123, 54, 'http://localhost/img/6851f8a678146_author-item.jpg', NULL),
+(124, 52, 'http://localhost/img/6852cd4924b18_author-item.jpg', NULL),
+(125, 52, 'http://localhost/img/6852cd49255b0_banner-image3.jpg', NULL),
+(126, 52, 'http://localhost/img/6852cd4925b00_card-image1.jpg', NULL),
+(127, 57, 'http://localhost/img/6852cf70341ed_author-item.jpg', NULL),
+(128, 57, 'http://localhost/img/6852cf7036342_banner-image3.jpg', NULL),
+(129, 57, 'http://localhost/img/6852cf703754f_card-image1.jpg', NULL);
 
 -- --------------------------------------------------------
 
@@ -165,21 +205,22 @@ CREATE TABLE `pointure_produit` (
 --
 
 INSERT INTO `pointure_produit` (`id_produit`, `id_pointure`, `stock`) VALUES
-(50, 23, 4),
-(52, 15, 5),
-(52, 16, 10),
-(52, 17, 10),
-(52, 18, 5),
+(55, 15, 10),
+(55, 16, 15),
+(55, 17, 10),
+(50, 20, 3),
 (53, 5, 10),
 (53, 6, 10),
 (53, 7, 10),
 (53, 8, 10),
-(55, 15, 10),
-(55, 16, 15),
-(55, 17, 10),
 (54, 19, 5),
 (54, 20, 10),
-(54, 21, 10);
+(54, 21, 10),
+(52, 15, 5),
+(52, 16, 10),
+(52, 17, 10),
+(52, 18, 5),
+(57, 21, 10);
 
 -- --------------------------------------------------------
 
@@ -208,11 +249,12 @@ CREATE TABLE `produit` (
 --
 
 INSERT INTO `produit` (`id`, `nom`, `marque`, `catégorie`, `type`, `couleur`, `description`, `statut`, `prix`, `quantité`, `date_ajout`, `date_modification`, `id_promotion`) VALUES
-(50, 'Airforce', 'adidas', 'homme', 'running', 'bleu', 'DD', 'en stock', 100, 4, '2025-06-10 20:58:12', '2025-06-10 22:31:20', NULL),
-(52, 'Classic', 'Reebok', 'femme', 'casual', 'blanc', 'Chaussures casual classiques pour femme', 'en stock', 75, 30, '2025-06-11 10:05:00', '2025-06-13 15:39:44', NULL),
-(53, 'Superstar', 'adidas', 'enfant', 'casual', 'bleu', 'Chaussures pour enfants style casual', 'en stock', 60, 40, '2025-06-11 10:10:00', '2025-06-13 15:48:26', NULL),
-(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en promotion', 40, 25, '2025-06-11 10:15:00', '2025-06-14 18:50:34', 18),
-(55, 'Chuck Taylor', 'Converse', 'femme', 'casual', 'noir', 'Baskets classiques pour femme', 'en stock', 65, 35, '2025-06-11 10:20:00', '2025-06-14 18:47:20', NULL);
+(50, 'Airforce', 'adidas', 'homme', 'running', 'bleu', 'DD', 'en stock', 100, 3, '2025-06-10 20:58:12', '2025-06-17 23:12:02', NULL),
+(52, 'Classic', 'Reebok', 'femme', 'casual', 'blanc', 'Chaussures casual classiques pour femme', 'en stock', 75, 30, '2025-06-11 10:05:00', '2025-06-18 15:29:29', NULL),
+(53, 'Superstar', 'adidas', 'enfant', 'casual', 'bleu', 'Chaussures pour enfants style casual', 'en stock', 60, 40, '2025-06-11 10:10:00', '2025-06-17 23:12:38', NULL),
+(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en promotion', 40, 25, '2025-06-11 10:15:00', '2025-06-18 00:22:14', 18),
+(55, 'Chuck Taylor', 'Converse', 'femme', 'casual', 'noir', 'Baskets classiques pour femme', 'en stock', 65, 35, '2025-06-11 10:20:00', '2025-06-17 23:11:41', NULL),
+(57, 'Airforce', 'Nike', 'femme', 'running', 'bleu', 'c\'est un chaussure très moderne ', 'en promotion', 88.8, 10, '2025-06-18 15:38:40', '2025-06-18 20:32:41', 18);
 
 -- --------------------------------------------------------
 
@@ -283,7 +325,7 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `prenom`, `nom`, `genre`, `date_naissance`, `age`, `phone`, `adresse`, `email`, `password`, `image`) VALUES
-(89, 'Mohamed Youssef', 'Azzouz', 'homme', '2000-02-02', 25, '25556300', 'Carthage', 'mohamedyoussefazzouz@gmail.com', 'youssef', 'http://localhost/img/user_684f0be930d8f.jpg'),
+(89, 'Youssef', 'Azzouz', 'homme', '2000-02-02', 25, '25556300', 'Carthage', 'mohamedyoussefazzouz@gmail.com', 'youssef', 'http://localhost/img/user_684f0be930d8f.jpg'),
 (90, 'Med Youssef', 'Azzouz', 'homme', '2000-10-10', 24, '26556300', 'Carthage ', 'youssefcarma@gmail.com', 'youssef', 'http://localhost/img/user_6851739b1e691.jpg');
 
 --
@@ -305,6 +347,21 @@ ALTER TABLE `avis`
   ADD KEY `fk_avis_user` (`id_user`);
 
 --
+-- Index pour la table `commande`
+--
+ALTER TABLE `commande`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_user` (`id_user`);
+
+--
+-- Index pour la table `commande_produit`
+--
+ALTER TABLE `commande_produit`
+  ADD PRIMARY KEY (`id_commande`,`id_produit`,`id_pointure`),
+  ADD KEY `id_produit` (`id_produit`),
+  ADD KEY `id_pointure` (`id_pointure`);
+
+--
 -- Index pour la table `favoris`
 --
 ALTER TABLE `favoris`
@@ -317,15 +374,6 @@ ALTER TABLE `favoris`
 ALTER TABLE `images_produits`
   ADD PRIMARY KEY (`id`),
   ADD KEY `images_produits_ibfk_1` (`id_produit`);
-
---
--- Index pour la table `panier`
---
-ALTER TABLE `panier`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `id_user` (`id_user`),
-  ADD KEY `id_produit` (`id_produit`),
-  ADD KEY `id_pointure` (`id_pointure`);
 
 --
 -- Index pour la table `pointures`
@@ -382,19 +430,19 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT pour la table `avis`
 --
 ALTER TABLE `avis`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT pour la table `commande`
+--
+ALTER TABLE `commande`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `images_produits`
 --
 ALTER TABLE `images_produits`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
-
---
--- AUTO_INCREMENT pour la table `panier`
---
-ALTER TABLE `panier`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT pour la table `pointures`
@@ -406,7 +454,7 @@ ALTER TABLE `pointures`
 -- AUTO_INCREMENT pour la table `produit`
 --
 ALTER TABLE `produit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT pour la table `promotion`
@@ -438,6 +486,20 @@ ALTER TABLE `avis`
   ADD CONSTRAINT `fk_avis_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Contraintes pour la table `commande`
+--
+ALTER TABLE `commande`
+  ADD CONSTRAINT `commande_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`);
+
+--
+-- Contraintes pour la table `commande_produit`
+--
+ALTER TABLE `commande_produit`
+  ADD CONSTRAINT `commande_produit_ibfk_1` FOREIGN KEY (`id_commande`) REFERENCES `commande` (`id`),
+  ADD CONSTRAINT `commande_produit_ibfk_2` FOREIGN KEY (`id_produit`) REFERENCES `produit` (`id`),
+  ADD CONSTRAINT `commande_produit_ibfk_3` FOREIGN KEY (`id_pointure`) REFERENCES `pointures` (`id`);
+
+--
 -- Contraintes pour la table `favoris`
 --
 ALTER TABLE `favoris`
@@ -449,14 +511,6 @@ ALTER TABLE `favoris`
 --
 ALTER TABLE `images_produits`
   ADD CONSTRAINT `images_produits_ibfk_1` FOREIGN KEY (`id_produit`) REFERENCES `produit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `panier`
---
-ALTER TABLE `panier`
-  ADD CONSTRAINT `panier_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `panier_ibfk_2` FOREIGN KEY (`id_produit`) REFERENCES `produit` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `panier_ibfk_3` FOREIGN KEY (`id_pointure`) REFERENCES `pointures` (`id`) ON DELETE SET NULL;
 
 --
 -- Contraintes pour la table `pointure_produit`
@@ -499,6 +553,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-SET GLOBAL event_scheduler = ON;
-SHOW EVENTS FROM stylish;
-SHOW VARIABLES LIKE 'event_scheduler';
