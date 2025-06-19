@@ -412,6 +412,7 @@ if (isset($_SESSION['user_id'])) {
     <?php include 'footer.php'; ?>
 
     <script>
+        var isUserLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
         function changeMainImage(src) {
             document.getElementById('mainImage').src = src;
         }
@@ -430,6 +431,11 @@ if (isset($_SESSION['user_id'])) {
             }
         }
         function openAddToCartModal() {
+            if (!isUserLoggedIn) {
+                var loginModal = new bootstrap.Modal(document.getElementById('modallogin'));
+                loginModal.show();
+                return;
+            }
             var modal = new bootstrap.Modal(document.getElementById('addToCartModal'));
             document.getElementById('addToCartForm').reset();
             modal.show();
@@ -441,7 +447,6 @@ if (isset($_SESSION['user_id'])) {
                 showToast('Veuillez choisir une pointure et une quantité valide.', 'danger');
                 return;
             }
-            // Récupérer les infos produit
             const product = {
                 id: <?php echo $product['id']; ?>,
                 nom: <?php echo json_encode($product['nom']); ?>,
@@ -450,62 +455,41 @@ if (isset($_SESSION['user_id'])) {
                 pointure: pointure,
                 quantite: quantite
             };
-            // Gestion du panier dans localStorage
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            // Vérifier si ce produit/pointure existe déjà
-            const index = cart.findIndex(item => item.id === product.id && item.pointure === pointure);
-            if (index !== -1) {
-                cart[index].quantite += quantite;
-            } else {
-                cart.push(product);
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-            updateCartTotal();
-            showToast('Produit ajouté au panier !', 'success');
-            var modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
-            modal.hide();
-        }
-        function updateCartCount() {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            // Nombre de produits différents (pas la somme des quantités)
-            let count = cart.length;
-            let cartCountEl = document.getElementById('cart-count');
-            if (!cartCountEl) {
-                // Créer le badge si absent
-                const cartIcon = document.querySelector('.shopping-cart');
-                if (cartIcon) {
-                    cartCountEl = document.createElement('span');
-                    cartCountEl.id = 'cart-count';
-                    cartCountEl.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-                    cartCountEl.style.fontSize = '0.8rem';
-                    cartCountEl.style.zIndex = '1001';
-                    cartIcon.parentNode.style.position = 'relative';
-                    cartIcon.parentNode.appendChild(cartCountEl);
+            fetch('cart.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    action: 'add',
+                    ...product
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Produit ajouté au panier !', 'success');
+                    updateCartFromServer();
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('addToCartModal'));
+                    modal.hide();
+                } else {
+                    showToast(data.message || 'Erreur lors de l\'ajout.', 'danger');
                 }
-            }
-            if (cartCountEl) {
-                cartCountEl.textContent = count;
-                cartCountEl.style.display = count > 0 ? 'inline-block' : 'none';
-            }
-        }
-        function updateCartTotal() {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            let total = 0;
-            cart.forEach(item => {
-                total += item.prix * item.quantite;
             });
-            // Affichage dans le mini-panier (à faire dans le header)
-            let cartTotalEl = document.getElementById('cart-total');
-            if (cartTotalEl) {
-                cartTotalEl.textContent = total.toFixed(2) + ' DT';
-            }
         }
-        // Initialiser le compteur au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCartCount();
-            updateCartTotal();
-        });
+        function updateCartFromServer(callback) {
+            fetch('cart.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'action=get'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.sessionCart = data.cart;
+                    if (typeof updateCartCountHeader === 'function') updateCartCountHeader();
+                    if (typeof callback === 'function') callback(data.cart);
+                }
+            });
+        }
         function showToast(message, type = 'primary') {
             const toastEl = document.getElementById('mainToast');
             const toastBody = document.getElementById('mainToastBody');
