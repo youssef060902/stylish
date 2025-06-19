@@ -70,8 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
         }
         // N'enregistrer la commande que s'il n'y a pas d'erreur
         if (empty($errors)) {
-            $stmt = $pdo->prepare("INSERT INTO commande (id_user, total, adresse_livraison) VALUES (?, ?, ?)");
-            $stmt->execute([$user_id, $total, $adresse]);
+            // Générer un token de confirmation unique
+            $confirmation_token = bin2hex(random_bytes(32));
+            $stmt = $pdo->prepare("INSERT INTO commande (id_user, total, adresse_livraison, confirmation_token) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$user_id, $total, $adresse, $confirmation_token]);
             $id_commande = $pdo->lastInsertId();
             foreach ($cart as $row) {
                 $stmt = $pdo->prepare("INSERT INTO commande_produit (id_commande, id_produit, id_pointure, prix_unitaire, quantite) VALUES (?, ?, ?, ?, ?)");
@@ -92,7 +94,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
             }
             $stmt = $pdo->prepare("DELETE FROM panier WHERE id_user = ?");
             $stmt->execute([$user_id]);
-            $message = "<div class='alert alert-success fw-bold'>Commande validée avec succès !</div>";
+
+            // Récupérer l'email de l'utilisateur
+            $stmt = $pdo->prepare("SELECT email, prenom FROM user WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($user) {
+                $to = $user['email'];
+                $prenom = $user['prenom'];
+                $subject = 'Confirmation de votre commande';
+                $confirm_link = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/confirm_order.php?order_id=$id_commande&token=$confirmation_token";
+                $message_mail = '
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmation de commande</title>
+  <style>
+    body { background: #f6f6f6; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #e0e0e0; padding: 32px 24px; }
+    .header { text-align: center; margin-bottom: 32px; }
+    .logo { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 8px; }
+    .title { font-size: 1.7rem; color: #e74c3c; font-weight: bold; margin-bottom: 8px; }
+    .content { font-size: 1.1rem; color: #222; margin-bottom: 24px; }
+    .btn { display: inline-block; background: #e74c3c; color: #fff !important; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; margin: 24px 0; transition: background 0.2s; }
+    .btn:hover { background: #c0392b; }
+    .footer { color: #888; font-size: 0.95rem; text-align: center; margin-top: 32px; }
+    @media (max-width: 600px) {
+      .container { padding: 16px 4px; }
+      .btn { width: 100%; box-sizing: border-box; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Stylish" class="logo">
+      <div class="title">Confirmation de votre commande</div>
+    </div>
+    <div class="content">
+      Bonjour <b>' . htmlspecialchars($prenom) . '</b>,<br><br>
+      Merci pour votre commande sur <b>Stylish</b>.<br>
+      Pour valider votre commande, veuillez cliquer sur le bouton ci-dessous :
+    </div>
+    <div style="text-align:center;">
+      <a href="' . $confirm_link . '" class="btn">Confirmer ma commande</a>
+    </div>
+    <div class="content" style="font-size:1rem; color:#555;">
+      Si vous n\'êtes pas à l\'origine de cette commande, vous pouvez ignorer ce message.<br>
+      <br>
+      Merci de votre confiance,<br>
+      <b>L\'équipe Stylish</b>
+    </div>
+    <div class="footer">
+      &copy; ' . date('Y') . ' Stylish. Tous droits réservés.
+    </div>
+  </div>
+</body>
+</html>
+';
+                // Envoi du mail avec PHPMailer
+                require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+                require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/SMTP.php';
+                require_once __DIR__ . '/../vendor/phpmailer/phpmailer/src/Exception.php';
+                
+                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                try {
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'youssefcarma@gmail.com'; // Remplace par ton email
+                    $mail->Password = 'oupl cahg lkac cxun'; // Remplace par ton mot de passe d'application
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port = 587;
+                    $mail->CharSet = 'UTF-8';
+
+                    $mail->setFrom('stylish@gmail.com', 'Stylish');
+                    $mail->addAddress($to, $prenom);
+
+                    $mail->isHTML(true);
+                    $mail->Subject = $subject;
+                    $mail->Body = $message_mail;
+
+                    $mail->send();
+                } catch (\PHPMailer\PHPMailer\Exception $e) {
+                    error_log('Erreur d\'envoi de mail : ' . $mail->ErrorInfo);
+                }
+            }
+            $message = "<div class='alert alert-success fw-bold'>Commande validée avec succès ! Un email de confirmation vous a été envoyé.</div>";
         }
     }
 }
