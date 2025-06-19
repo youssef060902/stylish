@@ -326,12 +326,10 @@ function getProductImage($pdo, $id_produit) {
         </tbody>
       </table>
       <table class="recap-table">
-        <tr><td class="label">Total produits :</td><td><?php echo number_format($total_produits, 2, ',', ' '); ?> DT</td></tr>
-        <?php if ($coupon_applied): ?>
-        <tr><td class="label">Réduction coupon :</td><td>-<?php echo number_format($reduction, 2, ',', ' '); ?> DT</td></tr>
-        <?php endif; ?>
-        <tr><td class="label">Livraison :</td><td>+<?php echo number_format($livraison, 2, ',', ' '); ?> DT</td></tr>
-        <tr><td class="total">Total à payer :</td><td class="total"><?php echo number_format($total, 2, ',', ' '); ?> DT</td></tr>
+        <tr><td class="label">Total produits :</td><td id="total-produits" data-value="<?php echo $total_produits; ?>"><?php echo number_format($total_produits, 2, ',', ' '); ?> DT</td></tr>
+        <tr id="reduction-row" style="display:<?php echo $coupon_applied ? '' : 'none'; ?>;"><td class="label">Réduction coupon :</td><td id="reduction-value"><?php echo $coupon_applied ? '-'.number_format($reduction, 2, ',', ' ').' DT' : ''; ?></td></tr>
+        <tr><td class="label">Livraison :</td><td id="livraison" data-value="<?php echo $livraison; ?>">+<?php echo number_format($livraison, 2, ',', ' '); ?> DT</td></tr>
+        <tr><td class="total">Total à payer :</td><td class="total" id="total-row"><?php echo number_format($total, 2, ',', ' '); ?> DT</td></tr>
       </table>
       <?php if ($coupon_message): ?>
         <div class="mb-2 text-<?php echo $coupon_applied ? 'success' : 'danger'; ?> text-center"><?php echo $coupon_message; ?></div>
@@ -345,10 +343,13 @@ function getProductImage($pdo, $id_produit) {
         </div>
         <div class="mb-3 row">
           <label for="coupon" class="col-sm-4 col-form-label">Code promo</label>
-          <div class="col-sm-8">
+          <div class="col-sm-8 d-flex gap-2">
             <input type="text" class="form-control" id="coupon" name="coupon" placeholder="Entrez votre code promo" value="<?php echo htmlspecialchars($coupon_code); ?>">
+            <button type="button" class="btn btn-outline-primary" id="apply-coupon-btn">Appliquer</button>
           </div>
+          <div id="coupon-feedback" class="mt-2"></div>
         </div>
+        <input type="hidden" name="coupon_discount" id="coupon_discount" value="<?php echo $coupon_discount; ?>">
         <div class="mb-3 row">
           <div class="col-sm-4"></div>
           <div class="col-sm-8">
@@ -361,5 +362,42 @@ function getProductImage($pdo, $id_produit) {
   <script src="js/jquery-1.11.0.min.js"></script>
   <script src="js/plugins.js"></script>
   <script src="js/script.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script></body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  document.getElementById('apply-coupon-btn').addEventListener('click', function() {
+      var code = document.getElementById('coupon').value.trim();
+      var feedback = document.getElementById('coupon-feedback');
+      if (!code) {
+          feedback.innerHTML = '<span class="text-danger">Veuillez saisir un code coupon.</span>';
+          return;
+      }
+      fetch('check_coupon.php', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: 'coupon=' + encodeURIComponent(code)
+      })
+      .then(r => r.json())
+      .then(data => {
+          if (data.valid) {
+              feedback.innerHTML = '<span class="text-success">' + data.message + '</span>';
+              // Calculer la réduction et mettre à jour le total
+              var totalProduits = parseFloat(document.getElementById('total-produits').dataset.value);
+              var livraison = parseFloat(document.getElementById('livraison').dataset.value);
+              var reduction = Math.round(totalProduits * data.discount) / 100;
+              var total = totalProduits - (totalProduits * data.discount / 100) + livraison;
+              document.getElementById('reduction-row').style.display = '';
+              document.getElementById('reduction-value').textContent = '-' + (totalProduits * data.discount / 100).toFixed(2) + ' DT';
+              document.getElementById('total-row').textContent = total.toFixed(2) + ' DT';
+              document.getElementById('coupon_discount').value = data.discount;
+          } else {
+              feedback.innerHTML = '<span class="text-danger">' + data.message + '</span>';
+              document.getElementById('reduction-row').style.display = 'none';
+              document.getElementById('reduction-value').textContent = '';
+              document.getElementById('total-row').textContent = (parseFloat(document.getElementById('total-produits').dataset.value) + parseFloat(document.getElementById('livraison').dataset.value)).toFixed(2) + ' DT';
+              document.getElementById('coupon_discount').value = 0;
+          }
+      });
+  });
+  </script>
+</body>
 </html> 
