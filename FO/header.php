@@ -239,7 +239,6 @@ if (isset($_SESSION['user_id'])) {
   height: 24px;
   display: block;
   margin: 0 auto;
-  vertical-align: middle;
 }
 #cart-count {
   position: absolute;
