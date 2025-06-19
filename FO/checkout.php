@@ -1,8 +1,6 @@
 <?php
 // Inclure le header et les styles
-include 'header.php';
-
-// Connexion à la base de données
+ include 'header.php'; 
 $host = 'localhost';
 $dbname = 'stylish';
 $username = 'root';
@@ -18,8 +16,12 @@ if (!$user_id) {
 // Traitement du formulaire de commande
 $message = '';
 $errors = [];
+$coupon_applied = false;
+$coupon_discount = 0;
+$coupon_code = '';
+$coupon_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison'])) {
-    // 1. Récupérer le panier de l'utilisateur
+    $coupon_code = trim($_POST['coupon'] ?? '');
     $stmt = $pdo->prepare("
         SELECT pa.id_produit, pa.id_pointure, pa.quantite, pp.stock, p.nom, po.pointure, p.prix
         FROM panier pa
@@ -31,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
     $stmt->execute([$user_id]);
     $cart = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Vérifier le stock pour chaque ligne
     $problems = [];
     foreach ($cart as $row) {
         if ($row['quantite'] > $row['stock']) {
@@ -41,35 +42,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
     if ($problems) {
         $errors[] = "Stock insuffisant pour :<br>" . implode('<br>', $problems);
     } else {
-        // 3. Créer la commande
-        $total = 0;
+        $total_produits = 0;
         foreach ($cart as $row) {
-            $total += $row['prix'] * $row['quantite'];
+            $total_produits += $row['prix'] * $row['quantite'];
         }
+        // Gestion du coupon
+        if ($coupon_code !== '') {
+            $stmt = $pdo->prepare("SELECT discount, statut FROM coupon WHERE code = ?");
+            $stmt->execute([$coupon_code]);
+            $coupon = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($coupon && $coupon['discount'] > 0 && $coupon['statut'] === 'active') {
+                $coupon_applied = true;
+                $coupon_discount = (float)$coupon['discount'];
+                $coupon_message = "Coupon appliqué : -" . (int)$coupon_discount . "%";
+            } elseif ($coupon && $coupon['statut'] !== 'active') {
+                $errors[] = "Ce coupon est inactif. Veuillez en saisir un autre ou laisser vide.";
+            } else {
+                $errors[] = "Code coupon invalide. Veuillez corriger ou laisser vide.";
+            }
+        }
+        $reduction = $coupon_applied ? round($total_produits * $coupon_discount / 100, 2) : 0;
+        $livraison = 7.00;
+        $total = $total_produits - $reduction + $livraison;
         $adresse = trim($_POST['adresse_livraison']);
         if (empty($adresse)) {
             $errors[] = "Veuillez saisir une adresse de livraison.";
-        } else {
+        }
+        // N'enregistrer la commande que s'il n'y a pas d'erreur
+        if (empty($errors)) {
             $stmt = $pdo->prepare("INSERT INTO commande (id_user, total, adresse_livraison) VALUES (?, ?, ?)");
             $stmt->execute([$user_id, $total, $adresse]);
             $id_commande = $pdo->lastInsertId();
-
-            // 4. Insérer les lignes dans commande_produit et mettre à jour le stock
             foreach ($cart as $row) {
                 $stmt = $pdo->prepare("INSERT INTO commande_produit (id_commande, id_produit, id_pointure, prix_unitaire, quantite) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$id_commande, $row['id_produit'], $row['id_pointure'], $row['prix'], $row['quantite']]);
-                // Mise à jour du stock
                 $stmt = $pdo->prepare("UPDATE pointure_produit SET stock = stock - ? WHERE id_produit = ? AND id_pointure = ?");
                 $stmt->execute([$row['quantite'], $row['id_produit'], $row['id_pointure']]);
                 // Décrémenter aussi la quantité globale du produit
                 $stmt = $pdo->prepare("UPDATE produit SET quantité = quantité - ? WHERE id = ?");
                 $stmt->execute([$row['quantite'], $row['id_produit']]);
             }
-
-            // 5. Vider le panier
             $stmt = $pdo->prepare("DELETE FROM panier WHERE id_user = ?");
             $stmt->execute([$user_id]);
-
             $message = "<div class='alert alert-success fw-bold'>Commande validée avec succès !</div>";
         }
     }
@@ -86,6 +100,15 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$user_id]);
 $cart = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Calculs pour affichage
+$total_produits = 0;
+foreach ($cart as $item) {
+    $total_produits += $item['prix'] * $item['quantite'];
+}
+$reduction = $coupon_applied ? round($total_produits * $coupon_discount / 100, 2) : 0;
+$livraison = 7.00;
+$total = $total_produits - $reduction + $livraison;
 
 // Récupérer la première image de chaque produit
 function getProductImage($pdo, $id_produit) {
@@ -153,6 +176,22 @@ function getProductImage($pdo, $id_produit) {
       margin-left: auto;
       margin-right: auto;
     }
+    .recap-table {
+      max-width: 400px;
+      margin: 0 auto 2rem auto;
+      font-size: 1.1em;
+    }
+    .recap-table td {
+      padding: 6px 10px;
+    }
+    .recap-table .label {
+      color: #555;
+    }
+    .recap-table .total {
+      font-weight: bold;
+      color: #e74c3c;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
@@ -178,9 +217,7 @@ function getProductImage($pdo, $id_produit) {
           </tr>
         </thead>
         <tbody>
-          <?php $total = 0; ?>
           <?php foreach ($cart as $item): ?>
-            <?php $total += $item['prix'] * $item['quantite']; ?>
             <tr>
               <td><?php echo htmlspecialchars($item['nom']); ?></td>
               <td><?php echo htmlspecialchars($item['pointure']); ?></td>
@@ -190,18 +227,29 @@ function getProductImage($pdo, $id_produit) {
             </tr>
           <?php endforeach; ?>
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="4" class="text-end">Total :</td>
-            <td><?php echo number_format($total, 2, ',', ' '); ?> DT</td>
-          </tr>
-        </tfoot>
       </table>
+      <table class="recap-table">
+        <tr><td class="label">Total produits :</td><td><?php echo number_format($total_produits, 2, ',', ' '); ?> DT</td></tr>
+        <?php if ($coupon_applied): ?>
+        <tr><td class="label">Réduction coupon :</td><td>-<?php echo number_format($reduction, 2, ',', ' '); ?> DT</td></tr>
+        <?php endif; ?>
+        <tr><td class="label">Livraison :</td><td>+<?php echo number_format($livraison, 2, ',', ' '); ?> DT</td></tr>
+        <tr><td class="total">Total à payer :</td><td class="total"><?php echo number_format($total, 2, ',', ' '); ?> DT</td></tr>
+      </table>
+      <?php if ($coupon_message): ?>
+        <div class="mb-2 text-<?php echo $coupon_applied ? 'success' : 'danger'; ?> text-center"><?php echo $coupon_message; ?></div>
+      <?php endif; ?>
       <form method="post" class="form-section mt-4">
         <div class="mb-3 row">
           <label for="adresse_livraison" class="col-sm-4 col-form-label">Adresse de livraison</label>
           <div class="col-sm-8">
             <input type="text" class="form-control" id="adresse_livraison" name="adresse_livraison" required placeholder="Saisissez votre adresse de livraison" value="<?php echo isset($_POST['adresse_livraison']) ? htmlspecialchars($_POST['adresse_livraison']) : '' ?>">
+          </div>
+        </div>
+        <div class="mb-3 row">
+          <label for="coupon" class="col-sm-4 col-form-label">Code promo</label>
+          <div class="col-sm-8">
+            <input type="text" class="form-control" id="coupon" name="coupon" placeholder="Entrez votre code promo" value="<?php echo htmlspecialchars($coupon_code); ?>">
           </div>
         </div>
         <div class="mb-3 row">
@@ -213,6 +261,8 @@ function getProductImage($pdo, $id_produit) {
       </form>
     <?php endif; ?>
   </section>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  <script src="js/jquery-1.11.0.min.js"></script>
+  <script src="js/plugins.js"></script>
+  <script src="js/script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script></body>
 </html> 

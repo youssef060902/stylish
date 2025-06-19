@@ -27,5 +27,5 @@ if (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
                     (empty($new_query_string) ? '' : '?' . $new_query_string);
 }
 
-header('Location: ' . $redirect_url);
+header('Location: ' . 'index.php');
 exit();
