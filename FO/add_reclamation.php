@@ -52,22 +52,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->addAddress($user['email'], $user['prenom']);
 
                 $mail->isHTML(true);
-                $mail->Subject = 'Confirmation de votre reclamation - Stylish';
-                $mail->Body = '
-                <div style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 30px;">
-                    <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(44,62,80,0.08); padding: 30px;">
-                        <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Votre réclamation a bien été envoyée</h2>
-                        <p style="font-size: 1.1em; color: #333;">Bonjour ' . htmlspecialchars($user['prenom']) . ',</p>
-                        <p style="font-size: 1.1em; color: #333;">
-                            Nous avons bien reçu votre réclamation. Notre équipe va l\'étudier et vous tiendra informé(e) de l\'avancement de son traitement dans les plus brefs délais.<br><br>
-                            <b>Merci de votre confiance.</b>
-                        </p>
-                        <div style="margin: 30px 0; text-align: center;">
-                            <a href="http://localhost/stylish/FO/reclamations.php" style="background: #e74c3c; color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; letter-spacing: 1px;">Voir mes réclamations</a>
+                $mail->CharSet = 'UTF-8';
+                $mail->Subject = 'Confirmation de votre réclamation - Stylish';
+                if ($reclamation) {
+                    $typeMail = ucfirst($reclamation['type']);
+                    $descriptionMail = nl2br(htmlspecialchars($reclamation['description']));
+                    $produitMail = $reclamation['nom_produit'] ? htmlspecialchars($reclamation['nom_produit']) : '-';
+                    $dateMail = date('d/m/Y H:i', strtotime($reclamation['date_creation']));
+                    $statutMail = ucfirst($reclamation['statut']);
+                    $mail->Body = '
+                    <div style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 30px;">
+                        <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(44,62,80,0.08); padding: 30px;">
+                            <div style="text-align:center; margin-bottom: 20px;">
+                                <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Logo Stylish" style="max-width: 180px; height:auto; border-radius: 50%;">
+                            </div>
+                            <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Votre réclamation a bien été envoyée</h2>
+                            <p style="font-size: 1.1em; color: #333;">Bonjour ' . htmlspecialchars($user['prenom']) . ',</p>
+                            <p style="font-size: 1.1em; color: #333;">
+                                Nous avons bien reçu votre réclamation. Notre équipe va l\'étudier et vous tiendra informé(e) de l\'avancement de son traitement dans les plus brefs délais.<br><br>
+                                <b>Merci de votre confiance.</b>
+                            </p>
+                            <h3 style="color: #e74c3c; margin-top: 30px;">Détails de votre réclamation :</h3>
+                            <table style="width:100%; border-collapse:collapse; margin: 20px 0;">
+                                <tr>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;"><b>Type :</b></td>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;">' . $typeMail . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;"><b>Produit concerné :</b></td>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;">' . $produitMail . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;"><b>Description :</b></td>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;">' . $descriptionMail . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;"><b>Date :</b></td>
+                                    <td style="padding:8px; border-bottom:1px solid #eee;">' . $dateMail . '</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px;"><b>Statut :</b></td>
+                                    <td style="padding:8px;">' . $statutMail . '</td>
+                                </tr>
+                            </table>
+                            <div style="margin: 30px 0; text-align: center;">
+                                <a href="http://localhost/stylish/FO/reclamations.php" style="background: #e74c3c; color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; letter-spacing: 1px;">Voir mes réclamations</a>
+                            </div>
+                            <p style="font-size: 0.95em; color: #888; text-align: center;">L\'équipe Stylish<br>www.stylish.tn</p>
                         </div>
-                        <p style="font-size: 0.95em; color: #888; text-align: center;">L\'équipe Stylish<br>www.stylish.tn</p>
-                    </div>
-                </div>';
+                    </div>';
+                } else {
+                    $mail->Body = '
+                    <div style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 30px;">
+                        <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(44,62,80,0.08); padding: 30px;">
+                            <div style="text-align:center; margin-bottom: 20px;">
+                                <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Logo Stylish" style="max-width: 180px; height:auto;">
+                            </div>
+                            <h2 style="color: #2c3e50; text-align: center; margin-bottom: 20px;">Votre réclamation a bien été envoyée</h2>
+                            <p style="font-size: 1.1em; color: #333;">Bonjour ' . htmlspecialchars($user['prenom']) . ',</p>
+                            <p style="font-size: 1.1em; color: #333;">
+                                Nous avons bien reçu votre réclamation. Notre équipe va l\'étudier et vous tiendra informé(e) de l\'avancement de son traitement dans les plus brefs délais.<br><br>
+                                <b>Merci de votre confiance.</b>
+                            </p>
+                            <div style="margin: 30px 0; text-align: center;">
+                                <a href="http://localhost/stylish/FO/reclamations.php" style="background: #e74c3c; color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; letter-spacing: 1px;">Voir mes réclamations</a>
+                            </div>
+                            <p style="font-size: 0.95em; color: #888; text-align: center;">L\'équipe Stylish<br>www.stylish.tn</p>
+                        </div>
+                    </div>';
+                }
                 $mail->AltBody = "Bonjour " . $user['prenom'] . ",\n\nVotre réclamation a bien été envoyée. Nous allons la traiter dans les plus brefs délais.\n\nL'équipe Stylish";
                 $mail->send();
             } catch (Exception $e) {

@@ -48,7 +48,7 @@ if ($order_id > 0 && !empty($token)) {
         <h2 class="text-center mt-5">Confirmation de commande</h2>
         <?php echo $message; ?>
         <div class="text-center mt-4">
-            <a href="index.php" class="btn btn-primary">Retour à l'accueil</a>
+            <a href="mes_commandes.php" class="btn btn-primary">Suivre mes Commandes</a>
         </div>
     </div>
 </body>

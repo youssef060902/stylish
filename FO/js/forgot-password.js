@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const BASE_PHP_PATH = '/stylish-1.0.0/stylish-1.0.0/FO/'; // Chemin absolu vers les scripts PHP
+    const BASE_PHP_PATH = '/stylish/FO/'; // Chemin absolu vers les scripts PHP
 
     const forgotPasswordForm = document.getElementById('forgot-password-form');
     const verifyCodeForm = document.getElementById('verify-code-form');
@@ -187,8 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#dc3545'
                 });
-                console.log("Redirection vers : http://localhost/stylish-1.0.0/stylish-1.0.0/FO/index.php");
-                window.location.href = 'http://localhost/stylish-1.0.0/stylish-1.0.0/FO/index.php';
+                window.location.href = 'http://localhost/stylish/FO/index.php';
             } else {
                 showToast('Erreur', data.message, false);
             }

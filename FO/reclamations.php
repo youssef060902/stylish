@@ -210,7 +210,7 @@ $password = '';
                       </button>
                       <form method="post" action="delete_reclamation.php" style="display:inline;">
                         <input type="hidden" name="id" value="<?php echo $rec['id']; ?>">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+                        <button type="button" class="btn btn-sm btn-danger delete-reclam-btn" data-id="<?php echo $rec['id']; ?>">
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                       </form>
@@ -318,6 +318,27 @@ $password = '';
           </div>
         </div>
       </div>
+      <!-- Modal de confirmation de suppression -->
+      <div class="modal fade" id="deleteReclamModal" tabindex="-1" aria-labelledby="deleteReclamModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title" id="deleteReclamModalLabel">Confirmation de suppression</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+              Êtes-vous sûr de vouloir supprimer cette réclamation ?
+            </div>
+            <div class="modal-footer">
+              <form id="deleteReclamForm" method="post" action="delete_reclamation.php">
+                <input type="hidden" name="id" id="delete_reclam_id">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     <?php endif; ?>
   </section>
 
@@ -396,6 +417,13 @@ $password = '';
             $('#edit_produit_commande_div').slideUp();
             $('#edit_id_produit').prop('required', false);
         }
+    });
+
+    $(document).on('click', '.delete-reclam-btn', function() {
+        var id = $(this).data('id');
+        $('#delete_reclam_id').val(id);
+        var modal = new bootstrap.Modal(document.getElementById('deleteReclamModal'));
+        modal.show();
     });
 }); </script>
 </body>
