@@ -181,8 +181,9 @@ $password = '';
                 <th>Type</th>
                 <th>Produit</th>
                 <th>Description</th>
-                <th>Date</th>
+                <th>Date de création</th>
                 <th>Statut</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -196,6 +197,26 @@ $password = '';
                     <span class="status-badge <?php echo $rec['statut']; ?>">
                       <?php echo ucfirst($rec['statut']); ?>
                     </span>
+                  </td>
+                  <td>
+                    <?php if (in_array($rec['statut'], ['nouveau', 'en cours'])): ?>
+                      <button class="btn btn-sm btn-warning edit-reclam-btn" 
+                        data-id="<?php echo $rec['id']; ?>"
+                        data-type="<?php echo htmlspecialchars(trim(strtolower($rec['type']))); ?>"
+                        data-id_produit="<?php echo $rec['id_produit'] !== null ? $rec['id_produit'] : ''; ?>"
+                        data-description="<?php echo htmlspecialchars($rec['description']); ?>"
+                        data-bs-toggle="modal" data-bs-target="#editReclamModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-4.243 1.414 1.414-4.243a4 4 0 01.828-1.414z"/></svg>
+                      </button>
+                      <form method="post" action="delete_reclamation.php" style="display:inline;">
+                        <input type="hidden" name="id" value="<?php echo $rec['id']; ?>">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </form>
+                    <?php else: ?>
+                      <span class="text-muted">-</span>
+                    <?php endif; ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -251,13 +272,131 @@ $password = '';
           </div>
         </div>
       </div>
+      <!-- Modal d'édition de réclamation -->
+      <div class="modal fade" id="editReclamModal" tabindex="-1" aria-labelledby="editReclamModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <form method="post" action="update_reclamation.php">
+              <input type="hidden" name="id" id="edit_id">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editReclamModalLabel">Modifier la réclamation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="edit_type" class="form-label">Type de réclamation</label>
+                  <select class="form-select" id="edit_type" name="type" required>
+                    <option value="">Choisir un type</option>
+                    <option value="produit">Produit</option>
+                    <option value="livraison">Livraison</option>
+                    <option value="service">Service</option>
+                    <option value="paiement">Paiement</option>
+                    <option value="autre">Autre</option>
+                  </select>
+                </div>
+                <div class="mb-3" id="edit_produit_commande_div">
+                  <label for="edit_id_produit" class="form-label">Produit concerné</label>
+                  <select class="form-select" id="edit_id_produit" name="id_produit">
+                    <option value="">Sélectionner un produit</option>
+                    <?php foreach ($produits_commandes as $produit): ?>
+                      <option value="<?php echo $produit['id']; ?>">
+                        <?php echo htmlspecialchars($produit['nom']); ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="edit_description" class="form-label">Description</label>
+                  <textarea class="form-control" id="edit_description" name="description" rows="4" required></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     <?php endif; ?>
   </section>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="js/plugins.js"></script>
-<script src="js/reclamation.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>$(document).ready(function() {
+    // Cache le select des produits par défaut
+    $('#produit_commande_div').hide();
+    
+    // Gestion du changement de type de réclamation
+    $('#type').on('change', function() {
+        if ($(this).val() === 'produit') {
+            $('#produit_commande_div').slideDown();
+            $('#id_produit').prop('required', true);
+        } else {
+            $('#produit_commande_div').slideUp();
+            $('#id_produit').prop('required', false);
+        }
+    });
 
+    // Animation du formulaire
+    $('.add-reclam-btn').hover(
+        function() { $(this).addClass('pulse'); },
+        function() { $(this).removeClass('pulse'); }
+    );
+
+    // Effet de transition sur les status badges
+    $('.status-badge').each(function() {
+        $(this).css('transition', 'all 0.3s ease');
+    });
+
+    // Gestion du modal d'édition
+    $('.edit-reclam-btn').on('click', function() {
+        const id = $(this).data('id');
+        console.log('ID de la réclamation:', id); // Debug
+        $("#editReclamModal button[type='submit']").prop('disabled', true);
+        $('#edit_id').val('');
+        $('#edit_type').val('');
+        $('#edit_description').val('');
+        $('#edit_id_produit').val('');
+        $('#edit_produit_commande_div').hide();
+    
+        $.get('get_reclamation.php', {id: id}, function(response) {
+            console.log('Réponse AJAX:', response); // Debug
+            if (response.success) {
+                console.log('Données reçues:', response.data); // Debug
+                $('#edit_id').val(response.data.id);
+                $('#edit_type').val(response.data.type);
+                $('#edit_description').val(response.data.description);
+                if (response.data.type === 'produit') {
+                    $('#edit_produit_commande_div').show();
+                    $('#edit_id_produit').val(response.data.id_produit || '');
+                    $('#edit_id_produit').prop('required', true);
+                } else {
+                    $('#edit_produit_commande_div').hide();
+                    $('#edit_id_produit').val('').prop('required', false);
+                }
+            } else {
+                alert('Erreur lors de la récupération de la réclamation : ' + (response.message || 'Aucune donnée reçue.'));
+            }
+            $("#editReclamModal button[type='submit']").prop('disabled', false);
+        }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+            console.log('Erreur AJAX:', jqXHR, textStatus, errorThrown); // Debug
+            alert('Erreur AJAX : ' + textStatus);
+            $("#editReclamModal button[type='submit']").prop('disabled', false);
+        });
+    });
+
+    // Affichage dynamique du select produit dans le modal d'édition
+    $('#edit_type').on('change', function() {
+        if ($(this).val() === 'produit') {
+            $('#edit_produit_commande_div').slideDown();
+            $('#edit_id_produit').prop('required', true);
+        } else {
+            $('#edit_produit_commande_div').slideUp();
+            $('#edit_id_produit').prop('required', false);
+        }
+    });
+}); </script>
 </body>
 </html> 
