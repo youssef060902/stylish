@@ -76,11 +76,7 @@ try {
     
     $stmt->execute([$id, $date_fin, $date_debut, $date_fin, $date_debut, $date_debut, $date_fin]);
     
-    if ($stmt->fetchColumn() > 0) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Une autre promotion existe déjà sur cette période']);
-        exit();
-    }
+    
 
     // Mise à jour de la promotion
     $stmt = $pdo->prepare("UPDATE promotion SET nom = ?, description = ?, date_debut = ?, date_fin = ?, discount = ? WHERE id = ?");
