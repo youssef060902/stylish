@@ -85,9 +85,8 @@ $password = '';
       letter-spacing: 1px;
     }
     .status-badge.nouveau { background: #3498db; }
-    .status-badge.en_cours { background: #f1c40f; }
+    .status-badge.en_cours { background: #f39c12; }
     .status-badge.résolu { background: #2ecc71; }
-    .status-badge.fermé { background: #95a5a6; }
     
     .modal-content {
       border-radius: 15px;
@@ -194,12 +193,12 @@ $password = '';
                   <td><?php echo nl2br(htmlspecialchars($rec['description'])); ?></td>
                   <td><?php echo date('d/m/Y', strtotime($rec['date_creation'])); ?></td>
                   <td>
-                    <span class="status-badge <?php echo $rec['statut']; ?>">
+                    <span class="status-badge <?php echo str_replace(' ', '_', $rec['statut']); ?>">
                       <?php echo ucfirst($rec['statut']); ?>
                     </span>
                   </td>
                   <td>
-                    <?php if (in_array($rec['statut'], ['nouveau', 'en cours'])): ?>
+                    <?php if ($rec['statut'] === 'nouveau'): ?>
                       <button class="btn btn-sm btn-warning edit-reclam-btn" 
                         data-id="<?php echo $rec['id']; ?>"
                         data-type="<?php echo htmlspecialchars(trim(strtolower($rec['type']))); ?>"
