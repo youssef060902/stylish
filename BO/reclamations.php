@@ -251,17 +251,28 @@ $reclamations = $stmt->fetchAll(PDO::FETCH_ASSOC);
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'Statut mis à jour',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
                     // Mettre à jour l'attribut data-status pour le filtre dynamique
-                    const row = document.querySelector(`tr[data-id='${id}']`); // Vous devrez ajouter data-id aux <tr> pour que cela marche
+                    const row = document.querySelector(`tr[data-user-id][onclick*="${id}"]`); // Améliorer la sélection si possible
                     if(row) row.dataset.status = newStatus;
+
+                    if (data.email_status && data.email_status.includes("L'e-mail n'a pas pu être envoyé")) {
+                        // Le statut est mis à jour, mais l'e-mail a échoué
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Statut mis à jour, mais...',
+                            html: `L'envoi de l'e-mail a échoué. Assurez-vous que les identifiants SMTP sont corrects dans <code>BO/update_reclamation_status.php</code>.<br><br><small>Erreur: ${data.email_status}</small>`,
+                        });
+                    } else {
+                        // Succès complet
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Statut mis à jour et e-mail envoyé !',
+                            showConfirmButton: false,
+                            timer: 2500
+                        });
+                    }
                 } else {
                     Swal.fire('Erreur', data.message, 'error');
                 }
