@@ -1,0 +1,29 @@
+.sidebar {
+    min-height: 100vh;
+    background: #2c3e50;
+    color: white;
+    padding-top: 20px;
+    position: fixed;
+    width: inherit;
+    max-width: inherit;
+    overflow-y: auto;
+    z-index: 1000;
+}
+.sidebar .nav-link {
+    color: rgba(255,255,255,.8);
+    padding: 10px 20px;
+    margin: 5px 0;
+}
+.sidebar .nav-link:hover {
+    color: white;
+    background: rgba(255,255,255,.1);
+}
+.sidebar .nav-link.active {
+    background: #3498db;
+    color: white;
+}
+.main-content {
+    padding: 20px;
+    background: #f8f9fa;
+    margin-left: 16.666667%; /* Pour compenser la largeur de la sidebar */
+} 

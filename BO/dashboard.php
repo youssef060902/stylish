@@ -28,6 +28,8 @@ try {
 } catch(PDOException $e) {
     die("Erreur de récupération des utilisateurs : " . $e->getMessage());
 }
+
+$active_page = 'users';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -39,35 +41,8 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin-style.css">
     <style>
-        .sidebar {
-            min-height: 100vh;
-            background: #2c3e50;
-            color: white;
-            padding-top: 20px;
-            position: fixed;
-            width: inherit;
-            max-width: inherit;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-        .sidebar .nav-link {
-            color: rgba(255,255,255,.8);
-            padding: 10px 20px;
-            margin: 5px 0;
-        }
-        .sidebar .nav-link:hover {
-            color: white;
-            background: rgba(255,255,255,.1);
-        }
-        .sidebar .nav-link.active {
-            background: #3498db;
-            color: white;
-        }
-        .main-content {
-            padding: 20px;
-            margin-left: 16.666667%; /* Pour compenser la largeur de la sidebar */
-        }
         .table-responsive {
             margin-top: 20px;
         }
@@ -115,19 +90,7 @@ try {
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <h3 class="text-center mb-4">Stylish Admin</h3>
-                <nav class="nav flex-column">
-                    <a class="nav-link" href="dashboard.php"><i class="fas fa-home me-2"></i> Dashboard</a>
-                    <a class="nav-link active" href="dashboard.php"><i class="fas fa-users me-2"></i> Utilisateurs</a>
-                    <a class="nav-link" href="products.php"><i class="fas fa-product-hunt me-2"></i> Produits</a>
-                    <a class="nav-link" href="promotion.php"><i class="fas fa-box me-2"></i> Promotions</a>
-                    <a class="nav-link" href="#"><i class="fas fa-cog me-2"></i> Paramètres</a>
-                    <div class="mt-auto pt-3 border-top border-secondary">
-                        <a class="nav-link" href="logout.php" style="color: rgba(255,255,255,.8);"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</a>
-                    </div>
-                </nav>
-            </div>
+            <?php include 'sidebar.php'; ?>
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
