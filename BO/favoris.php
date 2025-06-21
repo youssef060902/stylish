@@ -175,7 +175,7 @@ $favoris = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <td><?php echo htmlspecialchars($fav['marque']); ?></td>
                                         <td><?php echo htmlspecialchars($fav['type']); ?></td>
                                         <td><?php echo htmlspecialchars($fav['couleur']); ?></td>
-                                        <td><?php echo htmlspecialchars($fav['prix']); ?> €</td>
+                                        <td><?php echo htmlspecialchars($fav['prix']); ?> DT</td>
                                         <td class="text-center favoris-count">
                                             <?php echo $fav['total_favoris']; ?>
                                         </td>

@@ -746,8 +746,8 @@ $active_page = 'promotions';
                                 </td>
                                 <td>${product.nom}</td>
                                 <td>${product.marque}</td>
-                                <td>${product.prix_initial} €</td>
-                                <td>${product.prix_reduit} €</td>
+                                <td>${product.prix_initial} DT</td>
+                                <td>${product.prix_reduit} DT</td>
                                 <td>
                                     <span class="badge ${product.statut === 'en stock' ? 'bg-success' : 'bg-warning'}">
                                         ${product.statut}
