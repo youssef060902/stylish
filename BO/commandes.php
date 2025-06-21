@@ -7,26 +7,48 @@ if (!isset($_SESSION['admin_id'])) {
 $active_page = 'orders';
 
 // Connexion à la base de données
-// require '../config/database.php';
 $host = 'localhost';
 $dbname = 'stylish';
 $username = 'root';
 $password = '';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec("SET NAMES utf8");
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
-// Récupération des commandes
+// Récupération des catégories pour le filtre
+$categories = $pdo->query("SELECT DISTINCT catégorie FROM produit ORDER BY catégorie ASC")->fetchAll(PDO::FETCH_COLUMN);
+
+// Récupération des produits commandés pour le filtre
+$ordered_products = $pdo->query("
+    SELECT DISTINCT p.nom
+    FROM produit p
+    JOIN commande_produit cp ON p.id = cp.id_produit
+    ORDER BY p.nom ASC
+")->fetchAll(PDO::FETCH_COLUMN);
+
+// Récupération des commandes avec toutes les informations pour les filtres
 $stmt = $pdo->query("
     SELECT
-        c.id, c.date_commande, c.total, c.statut,
+        c.id,
+        c.date_commande,
+        c.total,
+        c.statut,
         CONCAT(u.prenom, ' ', u.nom) AS user_name,
-        u.image AS user_image
+        u.image AS user_image,
+        -- Concaténer tous les noms de produits de la commande
+        (SELECT GROUP_CONCAT(p.nom SEPARATOR '|||')
+         FROM commande_produit cp JOIN produit p ON cp.id_produit = p.id
+         WHERE cp.id_commande = c.id) AS product_names,
+        -- Concaténer toutes les catégories uniques de la commande
+        (SELECT GROUP_CONCAT(DISTINCT p.catégorie SEPARATOR '|||')
+         FROM commande_produit cp JOIN produit p ON cp.id_produit = p.id
+         WHERE cp.id_commande = c.id) AS product_categories,
+        -- Vérifier s'il y a une réduction (coupon)
+        ( (SELECT SUM(cp.prix_unitaire * cp.quantite) FROM commande_produit cp WHERE cp.id_commande = c.id) + 7.00 - c.total > 0.01 ) AS has_discount
     FROM commande c
     JOIN user u ON c.id_user = u.id
     ORDER BY c.date_commande DESC
@@ -44,28 +66,10 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="css/admin-style.css">
     <style>
         .table th, .table td { vertical-align: middle; }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .user-placeholder {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #e9ecef;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #495057;
-        }
-        .status-badge {
-            font-size: 0.85em;
-            padding: 0.5em 0.8em;
-            border-radius: 0.25rem;
-        }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-placeholder { width: 40px; height: 40px; border-radius: 50%; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #495057; }
+        .status-badge { font-size: 0.85em; padding: 0.5em 0.8em; border-radius: 0.25rem; }
+        .filter-card { background-color: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -77,8 +81,55 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <!-- Main Content -->
             <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Gestion des Commandes</h1>
+                    <h1 class="h2">Gestion des Commandes <span id="order-count" class="badge bg-secondary ms-2"></span></h1>
                 </div>
+
+                <!-- Filtres -->
+                <div class="card shadow-sm mb-4 filter-card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="userNameSearch" placeholder="Rechercher par nom de client...">
+                            </div>
+                             <div class="col-md-4">
+                                <select class="form-select" id="productNameFilter">
+                                    <option value="">Tous les produits</option>
+                                    <?php foreach ($ordered_products as $product_name): ?>
+                                        <option value="<?php echo htmlspecialchars($product_name); ?>"><?php echo htmlspecialchars($product_name); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="date" class="form-control" id="dateFilter">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="en attente">En attente</option>
+                                    <option value="confirmé">Confirmé</option>
+                                    <option value="en cours">En cours</option>
+                                    <option value="livré">Livré</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="categoryFilter">
+                                    <option value="">Toutes les catégories</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?php echo htmlspecialchars($category); ?>"><?php echo ucfirst(htmlspecialchars($category)); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="discountFilter">
+                                    <option value="">Tous</option>
+                                    <option value="yes">Avec Coupon</option>
+                                    <option value="no">Sans Coupon</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <div class="card shadow-sm">
                     <div class="card-body">
@@ -94,14 +145,20 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="ordersTableBody">
                                     <?php if (empty($orders)): ?>
                                         <tr>
                                             <td colspan="6" class="text-center text-muted py-4">Aucune commande pour le moment.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($orders as $order): ?>
-                                            <tr>
+                                            <tr class="order-row"
+                                                data-user-name="<?php echo htmlspecialchars($order['user_name']); ?>"
+                                                data-date="<?php echo date('Y-m-d', strtotime($order['date_commande'])); ?>"
+                                                data-status="<?php echo htmlspecialchars($order['statut']); ?>"
+                                                data-products="<?php echo htmlspecialchars($order['product_names']); ?>"
+                                                data-categories="<?php echo htmlspecialchars($order['product_categories']); ?>"
+                                                data-discount="<?php echo $order['has_discount'] ? 'yes' : 'no'; ?>">
                                                 <td><strong>#<?php echo $order['id']; ?></strong></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
@@ -173,8 +230,64 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        document.addEventListener('DOMContentLoaded', function() {
+            const filters = {
+                userName: document.getElementById('userNameSearch'),
+                productName: document.getElementById('productNameFilter'),
+                date: document.getElementById('dateFilter'),
+                status: document.getElementById('statusFilter'),
+                category: document.getElementById('categoryFilter'),
+                discount: document.getElementById('discountFilter')
+            };
 
+            function filterOrders() {
+                const userNameValue = filters.userName.value.toLowerCase();
+                const productNameValue = filters.productName.value.toLowerCase();
+                const dateValue = filters.date.value;
+                const statusValue = filters.status.value;
+                const categoryValue = filters.category.value;
+                const discountValue = filters.discount.value;
+                
+                let visibleCount = 0;
+                const rows = document.querySelectorAll('#ordersTableBody .order-row');
+
+                rows.forEach(row => {
+                    const rowUserName = row.dataset.userName.toLowerCase();
+                    const rowDate = row.dataset.date;
+                    const rowStatus = row.dataset.status;
+                    const rowDiscount = row.dataset.discount;
+                    const rowProducts = row.dataset.products.toLowerCase();
+                    const rowCategories = row.dataset.categories ? row.dataset.categories.toLowerCase() : '';
+
+                    const userNameMatch = !userNameValue || rowUserName.includes(userNameValue);
+                    const productNameMatch = !productNameValue || rowProducts.split('|||').includes(productNameValue.trim());
+                    const dateMatch = !dateValue || rowDate === dateValue;
+                    const statusMatch = !statusValue || rowStatus === statusValue;
+                    const categoryMatch = !categoryValue || (rowCategories && rowCategories.split('|||').includes(categoryValue));
+                    const discountMatch = !discountValue || rowDiscount === discountValue;
+
+                    if (userNameMatch && productNameMatch && dateMatch && statusMatch && categoryMatch && discountMatch) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                document.getElementById('order-count').textContent = visibleCount;
+            }
+
+            // Initial count
+            filterOrders();
+
+            // Attach event listeners
+            Object.values(filters).forEach(filter => {
+                filter.addEventListener('input', filterOrders);
+                filter.addEventListener('change', filterOrders);
+            });
+        });
+
+        const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
         function showDetails(orderId) {
             const modalTitle = document.getElementById('detailsModalTitle');
             const modalBody = document.getElementById('detailsModalBody');

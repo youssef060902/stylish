@@ -12,7 +12,16 @@ if (!isset($active_page)) {
         <a class="nav-link <?php echo ($active_page == 'products') ? 'active' : ''; ?>" href="products.php"><i class="fas fa-boxes me-2"></i> Produits</a>
         <a class="nav-link <?php echo ($active_page == 'promotions') ? 'active' : ''; ?>" href="promotion.php"><i class="fas fa-tags me-2"></i> Promotions</a>
         <a class="nav-link <?php echo ($active_page == 'orders') ? 'active' : ''; ?>" href="commandes.php"><i class="fas fa-receipt me-2"></i> Commandes</a>
-        <a class="nav-link <?php echo ($active_page == 'claims') ? 'active' : ''; ?>" href="reclamations.php"><i class="fas fa-exclamation-circle me-2"></i> Réclamations</a>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($active_page == 'claims') ? 'active' : ''; ?>" href="reclamations.php">
+                <i class="fas fa-exclamation-circle me-2"></i> Réclamations
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($active_page == 'reviews') ? 'active' : ''; ?>" href="avis.php">
+                <i class="fas fa-star me-2"></i> Avis
+            </a>
+        </li>
         <a class="nav-link <?php echo ($active_page == 'favorites') ? 'active' : ''; ?>" href="favoris.php"><i class="fas fa-heart me-2"></i> Favoris</a>
         <div class="mt-auto pt-3 border-top border-secondary">
             <a class="nav-link" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i> Déconnexion</a>

@@ -26,7 +26,7 @@ try {
     $stmt = $pdo->prepare("
         SELECT
             c.*,
-            u.prenom, u.nom, u.email, u.phone,
+            u.prenom, u.nom, u.email, u.phone, u.image AS user_image,
             CONCAT(u.prenom, ' ', u.nom) as user_name
         FROM commande c
         JOIN user u ON c.id_user = u.id
@@ -84,8 +84,19 @@ $discount = ($subtotal + $shipping_cost) - $total_in_db;
                     <h6 class="mb-0"><i class="fas fa-user-circle me-2"></i>Informations Client</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Nom:</strong> <?php echo htmlspecialchars($order['user_name']); ?></p>
-                    <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($order['email']); ?>"><?php echo htmlspecialchars($order['email']); ?></a></p>
+                    <div class="d-flex align-items-center mb-3">
+                        <?php if (!empty($order['user_image'])): ?>
+                            <img src="<?php echo htmlspecialchars($order['user_image']); ?>" alt="Client" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px;">
+                        <?php else: ?>
+                            <div style="width: 50px; height: 50px; border-radius: 50%; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #495057; margin-right: 15px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        <?php endif; ?>
+                        <div>
+                            <strong><?php echo htmlspecialchars($order['user_name']); ?></strong><br>
+                            <a href="mailto:<?php echo htmlspecialchars($order['email']); ?>"><?php echo htmlspecialchars($order['email']); ?></a>
+                        </div>
+                    </div>
                     <p><strong>Téléphone:</strong> <?php echo htmlspecialchars($order['phone']); ?></p>
                     <hr>
                     <p class="mb-0"><strong>Adresse de livraison:</strong><br><?php echo nl2br(htmlspecialchars($order['adresse_livraison'])); ?></p>
