@@ -18,13 +18,22 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-if (!isset($_POST['id'])) {
-    $response['message'] = 'ID de commande manquant.';
+if (!isset($_POST['id']) || !isset($_POST['date_livraison']) || empty($_POST['date_livraison'])) {
+    $response['message'] = 'ID de commande ou date de livraison manquant.';
     echo json_encode($response);
     exit();
 }
 
 $order_id = $_POST['id'];
+$date_livraison_str = $_POST['date_livraison'];
+
+// Validation de la date
+$delivery_date = DateTime::createFromFormat('Y-m-d', $date_livraison_str);
+if (!$delivery_date || $delivery_date->format('Y-m-d') !== $date_livraison_str) {
+    $response['message'] = 'Format de date de livraison invalide. Utilisez AAAA-MM-JJ.';
+    echo json_encode($response);
+    exit();
+}
 
 try {
     // Connexion DB
@@ -47,6 +56,10 @@ try {
     if (!$order || empty($products)) {
         throw new Exception('Détails de la commande introuvables.');
     }
+
+    // Mise à jour du statut de la commande et de la date de livraison
+    $stmt_update = $pdo->prepare("UPDATE commande SET statut = 'en préparation', date_livraison = :date_livraison WHERE id = :id");
+    $stmt_update->execute(['id' => $order_id, 'date_livraison' => $date_livraison_str]);
 
     // --- Calculs des totaux (avec gestion des réductions) ---
     $subtotal = 0;
@@ -120,7 +133,8 @@ try {
         <tr>
              <td colspan="2" style="padding-top:20px; text-align:right;">
                 <strong>Facture N° :</strong> ' . $order['id'] . '<br>
-                <strong>Date :</strong> ' . date('d/m/Y', strtotime($order['date_commande'])) . '
+                <strong>Date de commande :</strong> ' . date('d/m/Y', strtotime($order['date_commande'])) . '<br>
+                <strong>Date de livraison estimée :</strong> ' . date('d/m/Y', strtotime($date_livraison_str)) . '
             </td>
         </tr>
     </table>
@@ -207,8 +221,49 @@ try {
     $mail->addStringAttachment($pdfContent, 'facture_commande_'.$order_id.'.pdf', 'base64', 'application/pdf');
 
     $mail->isHTML(true);
-    $mail->Subject = 'Votre facture pour la commande Stylish #' . $order_id;
-    $mail->Body    = 'Bonjour '.htmlspecialchars($order['prenom']).',<br><br>Veuillez trouver ci-joint la facture pour votre commande n°'.$order_id.'.<br><br>Merci de votre confiance.<br><br>Cordialement,<br>L\'équipe Stylish';
+    $mail->Subject = 'Votre commande Stylish #' . $order_id . ' est en cours de préparation !';
+    $emailBody = '
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Votre commande Stylish est en cours</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f4; color: #333;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <tr>
+            <td align="center" style="padding: 40px 0 30px 0; background-color: #000000; color: #ffffff; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Stylish Logo" width="150" style="display: block;">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 40px 30px;">
+                <h1 style="font-size: 24px; margin: 0; margin-bottom: 20px;">Bonjour ' . htmlspecialchars($order['prenom']) . ',</h1>
+                <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 1.5;">Bonne nouvelle ! Votre commande <strong>#' . $order_id . '</strong> est maintenant en cours de préparation.</p>
+                <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.5;">Nous estimons sa livraison pour le <strong>' . date('d/m/Y', strtotime($date_livraison_str)) . '</strong>. Vous recevrez une notification dès qu\'elle sera expédiée.</p>
+                <p style="margin: 0; font-size: 16px; line-height: 1.5;">Vous trouverez en pièce jointe la facture détaillée de votre achat.</p>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 0 30px 40px 30px;">
+                <table border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="center" style="border-radius: 5px;" bgcolor="#28a745">
+                            <a href="http://localhost/stylish/FO/suivi_commande.php?id_commande=' . $order_id . '" target="_blank" style="font-size: 16px; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 5px; display: inline-block; font-weight: bold;">Suivre ma commande</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td bgcolor="#f4f4f4" style="padding: 30px 30px; text-align: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                <p style="margin: 0; color: #888; font-size: 12px;">Merci pour votre confiance !<br>&copy; ' . date('Y') . ' Stylish Store. Tous droits réservés.</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>';
+    $mail->Body    = $emailBody;
 
     $mail->send();
     

@@ -181,4 +181,20 @@ $discount = ($subtotal + $shipping_cost) - $total_in_db;
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<!-- Section Expédition (Conditionnelle) -->
+<?php if ($order['statut'] === 'en préparation'): ?>
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-warning">
+        <h6 class="mb-0"><i class="fas fa-truck-loading me-2"></i>Prêt à Expédier</h6>
+    </div>
+    <div class="card-body text-center">
+        <form id="shippingForm" class="d-inline-block">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-paper-plane me-2"></i>Marquer comme Expédiée & Notifier
+            </button>
+        </form>
+    </div>
+</div>
+<?php endif; ?> 

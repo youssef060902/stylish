@@ -107,7 +107,8 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <option value="">Tous les statuts</option>
                                     <option value="en attente">En attente</option>
                                     <option value="confirmé">Confirmé</option>
-                                    <option value="en cours">En cours</option>
+                                    <option value="en préparation">En préparation</option>
+                                    <option value="expédié">Expédié</option>
                                     <option value="livré">Livré</option>
                                 </select>
                             </div>
@@ -177,7 +178,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                         $status_classes = [
                                                             'en attente' => 'bg-warning text-dark',
                                                             'confirmé' => 'bg-info text-dark',
-                                                            'en cours' => 'bg-primary',
+                                                            'en préparation' => 'bg-primary',
                                                             'livré' => 'bg-success',
                                                         ];
                                                         $status_class = $status_classes[$order['statut']] ?? 'bg-secondary';
@@ -222,6 +223,31 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <button type="button" class="btn btn-success" id="sendEmailBtn" disabled>
                         <i class="fas fa-envelope me-1"></i> Envoyer par e-mail (PDF)
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour la date de livraison -->
+    <div class="modal fade" id="deliveryDateModal" tabindex="-1" aria-labelledby="deliveryDateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deliveryDateModalLabel">Date de livraison estimée</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="deliveryDateForm">
+                        <input type="hidden" id="orderIdForEmail" value="">
+                        <div class="mb-3">
+                            <label for="deliveryDateInput" class="form-label">Veuillez sélectionner une date de livraison :</label>
+                            <input type="date" class="form-control" id="deliveryDateInput" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmSendEmailBtn">Confirmer et envoyer</button>
                 </div>
             </div>
         </div>
@@ -287,60 +313,156 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         });
 
+        let currentOrderId = null;
         const detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        const deliveryDateModal = new bootstrap.Modal(document.getElementById('deliveryDateModal'));
+
         function showDetails(orderId) {
-            const modalTitle = document.getElementById('detailsModalTitle');
+            currentOrderId = orderId;
             const modalBody = document.getElementById('detailsModalBody');
+            const modalTitle = document.getElementById('detailsModalTitle');
             const sendEmailBtn = document.getElementById('sendEmailBtn');
 
-            modalTitle.textContent = `Détails de la Commande #${orderId}`;
-            modalBody.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Chargement...</span></div></div>';
+            modalTitle.textContent = 'Détails de la commande #' + orderId;
+            modalBody.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
             sendEmailBtn.disabled = true;
-            detailsModal.show();
 
-            fetch(`get_order_details.php?id=${orderId}`)
+            fetch('get_order_details.php?id=' + orderId)
                 .then(response => response.text())
                 .then(html => {
                     modalBody.innerHTML = html;
                     sendEmailBtn.disabled = false;
-                    sendEmailBtn.onclick = () => sendEmail(orderId);
                 })
                 .catch(error => {
-                    modalBody.innerHTML = '<div class="alert alert-danger">Erreur lors du chargement des détails.</div>';
+                    modalBody.innerHTML = '<div class="alert alert-danger">Erreur de chargement des détails.</div>';
                     console.error('Error:', error);
                 });
+            
+            detailsModal.show();
         }
 
-        function sendEmail(orderId) {
-            const sendEmailBtn = document.getElementById('sendEmailBtn');
-            sendEmailBtn.disabled = true;
-            sendEmailBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Envoi...';
+        document.getElementById('sendEmailBtn').addEventListener('click', function() {
+            if (currentOrderId) {
+                document.getElementById('orderIdForEmail').value = currentOrderId;
+                detailsModal.hide();
+                deliveryDateModal.show();
+            }
+        });
+
+        document.getElementById('confirmSendEmailBtn').addEventListener('click', function() {
+            const orderId = document.getElementById('orderIdForEmail').value;
+            const deliveryDate = document.getElementById('deliveryDateInput').value;
+
+            if (!deliveryDate) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Veuillez sélectionner une date de livraison.',
+                });
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Envoi...';
+
+            const formData = new FormData();
+            formData.append('id', orderId);
+            formData.append('date_livraison', deliveryDate);
 
             fetch('send_order_details.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${orderId}`
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    deliveryDateModal.hide();
                     Swal.fire({
                         icon: 'success',
-                        title: 'E-mail envoyé !',
-                        text: 'Le récapitulatif de la commande a bien été envoyé au client.',
-                        timer: 2500,
-                        showConfirmButton: false
+                        title: 'Succès!',
+                        text: 'L\'e-mail avec la facture a été envoyé et le statut de la commande mis à jour.',
+                        timer: 3000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        location.reload(); // Recharger pour voir le statut mis à jour
                     });
                 } else {
-                    Swal.fire('Erreur', data.message || "L'envoi de l'e-mail a échoué.", 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: data.message || 'Une erreur est survenue.',
+                    });
                 }
             })
-            .catch(error => Swal.fire('Erreur', "Une erreur inattendue est survenue.", 'error'))
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: 'Une erreur de communication est survenue.',
+                });
+                console.error('Error:', error);
+            })
             .finally(() => {
-                sendEmailBtn.disabled = false;
-                sendEmailBtn.innerHTML = '<i class="fas fa-envelope me-1"></i> Envoyer par e-mail (PDF)';
+                const btn = document.getElementById('confirmSendEmailBtn');
+                btn.disabled = false;
+                btn.innerHTML = 'Confirmer et envoyer';
             });
-        }
+        });
+
+        // Gestionnaire pour le formulaire d'expédition
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.id === 'shippingForm') {
+                e.preventDefault();
+                
+                const form = e.target;
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalButtonHtml = submitButton.innerHTML;
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Expédition...';
+
+                const formData = new FormData();
+                formData.append('id', currentOrderId);
+
+                fetch('expedier_commande.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        detailsModal.hide();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Commande Expédiée !',
+                            text: data.message || 'La commande a été marquée comme expédiée et le client a été notifié.',
+                            timer: 3500,
+                            timerProgressBar: true
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur d\'expédition',
+                            text: data.message || 'Une erreur est survenue.',
+                        });
+                    }
+                })
+                .catch(error => {
+                     Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur de Communication',
+                        text: 'Impossible de contacter le serveur.',
+                    });
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonHtml;
+                });
+            }
+        });
     </script>
 </body>
 </html> 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : jeu. 19 juin 2025 à 03:06
+-- Généré le : dim. 22 juin 2025 à 05:06
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -61,9 +61,9 @@ CREATE TABLE `avis` (
 --
 
 INSERT INTO `avis` (`id`, `id_produit`, `id_user`, `note`, `commentaire`, `date_creation`, `date_modification`) VALUES
-(7, 54, 90, 5, 'good', '2025-06-18 01:55:12', '2025-06-18 01:57:49'),
-(12, 52, 89, 5, 'good', '2025-06-18 15:30:47', NULL),
-(13, 57, 90, 3, 'kkkkkk', '2025-06-18 20:35:52', NULL);
+(16, 54, 96, 3, 'moyen', '2025-06-21 21:14:49', '2025-06-21 21:15:52'),
+(17, 50, 90, 4, 'vvvvv', '2025-06-21 21:42:42', NULL),
+(18, 54, 90, 4, 'hhh', '2025-06-21 21:43:39', NULL);
 
 -- --------------------------------------------------------
 
@@ -78,8 +78,19 @@ CREATE TABLE `commande` (
   `total` decimal(10,2) NOT NULL,
   `statut` enum('en attente','confirmé','en cours','livré') NOT NULL DEFAULT 'en attente',
   `adresse_livraison` varchar(255) NOT NULL,
-  `date_livraison` datetime DEFAULT NULL
+  `date_livraison` datetime DEFAULT NULL,
+  `confirmation_token` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `commande`
+--
+
+INSERT INTO `commande` (`id`, `id_user`, `date_commande`, `total`, `statut`, `adresse_livraison`, `date_livraison`, `confirmation_token`) VALUES
+(25, 90, '2025-06-21 17:44:23', 37.00, 'en cours', 'Carthage', NULL, NULL),
+(26, 90, '2025-06-21 19:08:29', 87.00, 'confirmé', 'Carthage', NULL, NULL),
+(27, 90, '2025-06-21 20:37:33', 207.00, 'confirmé', 'Carthage', NULL, NULL),
+(28, 96, '2025-06-22 01:28:27', 19.00, 'confirmé', 'Carthage', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -94,6 +105,39 @@ CREATE TABLE `commande_produit` (
   `prix_unitaire` decimal(10,2) NOT NULL,
   `quantite` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `commande_produit`
+--
+
+INSERT INTO `commande_produit` (`id_commande`, `id_produit`, `id_pointure`, `prix_unitaire`, `quantite`) VALUES
+(25, 52, 15, 30.00, 1),
+(26, 57, 22, 100.00, 1),
+(27, 50, 23, 100.00, 2),
+(27, 54, 19, 100.00, 3),
+(28, 52, 18, 30.00, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `coupon`
+--
+
+CREATE TABLE `coupon` (
+  `id` int(11) NOT NULL,
+  `code` varchar(50) NOT NULL,
+  `discount` int(11) NOT NULL,
+  `statut` enum('active','inactive') NOT NULL DEFAULT 'inactive'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `coupon`
+--
+
+INSERT INTO `coupon` (`id`, `code`, `discount`, `statut`) VALUES
+(1, 'WELCOME10', 10, 'inactive'),
+(2, 'ETE2025', 20, 'active'),
+(3, 'BLACK60', 60, 'active');
 
 -- --------------------------------------------------------
 
@@ -112,10 +156,9 @@ CREATE TABLE `favoris` (
 --
 
 INSERT INTO `favoris` (`id_user`, `id_produit`, `date_ajout`) VALUES
-(89, 50, '2025-06-18 13:45:09'),
-(89, 52, '2025-06-18 15:30:33'),
-(89, 54, '2025-06-18 13:15:18'),
-(90, 54, '2025-06-19 00:10:57');
+(90, 52, '2025-06-21 15:20:30'),
+(90, 54, '2025-06-21 15:17:54'),
+(96, 54, '2025-06-21 15:26:07');
 
 -- --------------------------------------------------------
 
@@ -136,7 +179,6 @@ CREATE TABLE `images_produits` (
 
 INSERT INTO `images_produits` (`id`, `id_produit`, `URL_Image`, `Legende`) VALUES
 (114, 54, 'http://localhost/img/6848ca51bce58_Capture d\'écran 2025-06-09 142902.png', NULL),
-(119, 55, 'http://localhost/img/6851e81d845f6_card-image1.jpg', NULL),
 (120, 50, 'http://localhost/img/6851e83211a72_card-large-item8.jpg', NULL),
 (121, 52, 'http://localhost/img/6851e8425903b_card-image6.jpg', NULL),
 (122, 53, 'http://localhost/img/6851e856343d3_card-image3.jpg', NULL),
@@ -219,22 +261,22 @@ CREATE TABLE `pointure_produit` (
 --
 
 INSERT INTO `pointure_produit` (`id_produit`, `id_pointure`, `stock`) VALUES
-(55, 15, 10),
-(55, 16, 15),
-(55, 17, 10),
-(50, 20, 3),
-(53, 5, 10),
-(53, 6, 10),
-(53, 7, 10),
-(53, 8, 10),
-(54, 19, 5),
-(54, 20, 10),
-(54, 21, 10),
-(52, 15, 5),
-(52, 16, 10),
+(54, 19, 6),
+(54, 20, 6),
+(54, 21, 8),
+(50, 21, 8),
+(50, 23, 10),
+(52, 15, 8),
+(52, 16, 4),
 (52, 17, 10),
-(52, 18, 5),
-(57, 21, 10);
+(52, 18, 4),
+(57, 20, 13),
+(57, 22, 6),
+(57, 23, 7),
+(53, 5, 6),
+(53, 6, 8),
+(53, 7, 5),
+(53, 8, 9);
 
 -- --------------------------------------------------------
 
@@ -263,12 +305,11 @@ CREATE TABLE `produit` (
 --
 
 INSERT INTO `produit` (`id`, `nom`, `marque`, `catégorie`, `type`, `couleur`, `description`, `statut`, `prix`, `quantité`, `date_ajout`, `date_modification`, `id_promotion`) VALUES
-(50, 'Airforce', 'adidas', 'homme', 'running', 'bleu', 'DD', 'en stock', 100, 3, '2025-06-10 20:58:12', '2025-06-17 23:12:02', NULL),
-(52, 'Classic', 'Reebok', 'femme', 'casual', 'blanc', 'Chaussures casual classiques pour femme', 'en stock', 75, 30, '2025-06-11 10:05:00', '2025-06-18 15:29:29', NULL),
-(53, 'Superstar', 'adidas', 'enfant', 'casual', 'bleu', 'Chaussures pour enfants style casual', 'en stock', 60, 40, '2025-06-11 10:10:00', '2025-06-17 23:12:38', NULL),
-(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en promotion', 40, 25, '2025-06-11 10:15:00', '2025-06-18 00:22:14', 18),
-(55, 'Chuck Taylor', 'Converse', 'femme', 'casual', 'noir', 'Baskets classiques pour femme', 'en stock', 65, 35, '2025-06-11 10:20:00', '2025-06-17 23:11:41', NULL),
-(57, 'Airforce', 'Nike', 'femme', 'running', 'bleu', 'c\'est un chaussure très moderne ', 'en promotion', 88.8, 10, '2025-06-18 15:38:40', '2025-06-18 20:32:41', 18);
+(50, 'Airforcee', 'Adidas', 'homme', 'running', 'bleu', 'DD', 'en stock', 100, 18, '2025-06-10 20:58:12', '2025-06-19 21:38:13', NULL),
+(52, 'Classic', 'Reebok', 'femme', 'casual', 'blanc', 'Chaussures casual classiques pour femme', 'en promotion', 30, 26, '2025-06-11 10:05:00', '2025-06-21 14:38:05', 18),
+(53, 'Superstar', 'Adidas', 'enfant', 'casual', 'bleu', 'Chaussures pour enfants style casual', 'en stock', 60, 28, '2025-06-11 10:10:00', '2025-06-21 14:56:04', NULL),
+(54, 'Air Max', 'Nike', 'homme', 'running', 'Rouge', 'Chaussures de running avec amorti Air Max', 'en stock', 100, 20, '2025-06-11 10:15:00', '2025-06-21 01:18:29', NULL),
+(57, 'Airforce', 'Nike', 'femme', 'running', 'bleu', 'c\'est un chaussure très moderne ', 'en stock', 100, 26, '2025-06-18 15:38:40', '2025-06-21 14:46:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -295,7 +336,7 @@ INSERT INTO `promotion` (`id`, `nom`, `description`, `date_debut`, `date_fin`, `
 (15, 'Noël', 'Promotion de Noël', '2025-12-01 00:00:00', '2025-12-31 23:59:59', 40),
 (16, 'Nouvel An', 'Promotion spéciale Nouvel An', '2025-12-26 00:00:00', '2026-01-15 23:59:59', 20),
 (17, 'Black Friday', 'Super promotions Black Friday', '2025-11-25 00:00:00', '2025-11-30 23:59:59', 50),
-(18, 'black friday', 'C\'est Black Friday', '2025-06-12 15:51:00', '2025-06-21 00:47:00', 60);
+(18, 'black friday', 'C\'est Black Friday', '2025-06-12 15:51:00', '2025-08-21 00:47:00', 60);
 
 -- --------------------------------------------------------
 
@@ -311,8 +352,16 @@ CREATE TABLE `reclamation` (
   `description` text NOT NULL,
   `date_creation` datetime NOT NULL DEFAULT current_timestamp(),
   `date_modification` datetime DEFAULT NULL ON UPDATE current_timestamp(),
-  `statut` enum('nouveau','en cours','résolu','fermé') NOT NULL DEFAULT 'nouveau'
+  `statut` enum('nouveau','en cours','résolu') NOT NULL DEFAULT 'nouveau'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `reclamation`
+--
+
+INSERT INTO `reclamation` (`id`, `id_user`, `id_produit`, `type`, `description`, `date_creation`, `date_modification`, `statut`) VALUES
+(12, 96, NULL, 'service', 'site est très lent', '2025-06-21 15:38:19', '2025-06-21 18:38:08', 'en cours'),
+(13, 90, 52, 'produit', 'n\'est pas bon il est très petit  ', '2025-06-21 17:45:28', '2025-06-21 18:39:27', 'en cours');
 
 -- --------------------------------------------------------
 
@@ -339,8 +388,8 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `prenom`, `nom`, `genre`, `date_naissance`, `age`, `phone`, `adresse`, `email`, `password`, `image`) VALUES
-(89, 'Youssef', 'Azzouz', 'homme', '2000-02-02', 25, '25556300', 'Carthage', 'mohamedyoussefazzouz@gmail.com', 'youssef', 'http://localhost/img/user_684f0be930d8f.jpg'),
-(90, 'Med Youssef', 'Azzouz', 'homme', '2000-10-10', 24, '26556300', 'Carthage ', 'youssefcarma@gmail.com', 'youssef', 'http://localhost/img/user_6851739b1e691.jpg');
+(90, 'Mohamed Youssef', 'Azzouz', 'Homme', '2002-09-06', 22, '26556300', 'Carthage', 'youssefcarma@gmail.com', 'admin123', 'http://localhost/img/user_68576620aa582.jpg'),
+(96, 'Ahmed', 'Azzouz', 'homme', '2000-09-10', 24, '26556300', 'Kram ', 'mohamedyoussefazzouz@gmail.com', '6d74b9f759e548d0', 'http://localhost/img/user_6856c062cc1b5.jpg');
 
 --
 -- Index pour les tables déchargées
@@ -374,6 +423,13 @@ ALTER TABLE `commande_produit`
   ADD PRIMARY KEY (`id_commande`,`id_produit`,`id_pointure`),
   ADD KEY `id_produit` (`id_produit`),
   ADD KEY `id_pointure` (`id_pointure`);
+
+--
+-- Index pour la table `coupon`
+--
+ALTER TABLE `coupon`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`);
 
 --
 -- Index pour la table `favoris`
@@ -452,13 +508,19 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT pour la table `avis`
 --
 ALTER TABLE `avis`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT pour la table `commande`
 --
 ALTER TABLE `commande`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT pour la table `coupon`
+--
+ALTER TABLE `coupon`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `images_produits`
@@ -488,13 +550,13 @@ ALTER TABLE `promotion`
 -- AUTO_INCREMENT pour la table `reclamation`
 --
 ALTER TABLE `reclamation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT pour la table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- Contraintes pour les tables déchargées

@@ -1,0 +1,7 @@
+[22-Jun-2025 06:00:14 Europe/Berlin] --- Début du script expedier_commande.php : 2025-06-22 06:00:14 ---
+[22-Jun-2025 06:00:14 Europe/Berlin] Données POST reçues : Array
+(
+)
+
+[22-Jun-2025 06:00:14 Europe/Berlin] Session admin OK : ID = 1
+[22-Jun-2025 06:00:14 Europe/Berlin] ERREUR: ID de commande manquant dans POST.
