@@ -542,7 +542,7 @@
         </div>
         <div class="col-lg-6 about-content-panel-final">
           <div class="about-content-wrapper-final">
-            <h1>About us.</h1>
+            <h1>C'est quoi Stylish? </h1>
             <p class="bold-paragraph">
               Chez Stylish, nous sommes votre destination premium pour des chaussures d'exception. Nous sommes reconnus pour notre sélection raffinée qui allie élégance, confort et qualité, offrant des moments de style inoubliables.
             </p>
@@ -758,9 +758,9 @@
   <section id="featured-products" class="product-store">
     <div class="container-md">
       <div class="display-header d-flex align-items-center justify-content-between">
-        <h2 class="section-title text-uppercase">Products on promotion</h2>
+        <h2 class="section-title text-uppercase">Produits en promotion</h2>
         <div class="btn-right">
-          <a href="promotions.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
+          <a href="promotions.php" class="d-inline-block text-uppercase text-hover fw-bold">Voir tout</a>
         </div>
       </div>
       <div class="product-content padding-small">
@@ -862,9 +862,9 @@
   <section id="latest-products" class="product-store py-2 my-2 py-md-5 my-md-5 pt-0">
     <div class="container-md">
       <div class="display-header d-flex align-items-center justify-content-between">
-        <h2 class="section-title text-uppercase">Latest Products</h2>
+        <h2 class="section-title text-uppercase">Les nouveaux produits</h2>
         <div class="btn-right">
-          <a href="nouveautes.php" class="d-inline-block text-uppercase text-hover fw-bold">View all</a>
+          <a href="nouveautes.php" class="d-inline-block text-uppercase text-hover fw-bold">Voir Tout</a>
         </div>
       </div>
       <div class="product-content padding-small">

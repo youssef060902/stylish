@@ -81,7 +81,8 @@ try {
                         <div class="col-md-4">
                             <label for="xAxisSelector" class="form-label fw-bold">Axe X (Grouper par)</label>
                             <select id="xAxisSelector" class="form-select builder-control">
-                                <option value="date_commande">Date</option>
+                                <option value="date_commande">Date de commande</option>
+                                <option value="date_livraison">Date de livraison</option>
                                 <option value="p.catégorie">Catégorie Produit</option>
                                 <option value="p.marque">Marque Produit</option>
                                 <option value="c.statut">Statut Commande</option>
@@ -135,7 +136,8 @@ try {
                                 <option value="">Tous</option>
                                 <option value="en attente">En attente</option>
                                 <option value="confirmé">Confirmé</option>
-                                <option value="en cours">En cours</option>
+                                <option value="en préparation">En préparation</option>
+                                <option value="expédié">Expédié</option>
                                 <option value="livré">Livré</option>
                             </select>
                         </div>

@@ -14,7 +14,8 @@ $dimensions = [
     'c.statut' => ['expression' => 'statut', 'requires' => []],
     'u.id' => ['expression' => 'user_name', 'requires' => ['user']],
     'on_promotion' => ['expression' => 'on_promotion', 'requires' => ['produit']],
-    'date_commande' => ['expression' => 'date_group', 'requires' => []]
+    'date_commande' => ['expression' => 'date_group', 'requires' => []],
+    'date_livraison' => ['expression' => 'date_livraison_group', 'requires' => []],
 ];
 
 $measures = [
@@ -72,7 +73,8 @@ $master_sql = "
         cp.quantite, (cp.prix_unitaire * cp.quantite) as product_line_revenue,
         p.catégorie, p.marque, CASE WHEN p.id_promotion IS NOT NULL THEN 'En Promotion' ELSE 'Sans Promotion' END as on_promotion,
         CONCAT(u.prenom, ' ', u.nom) as user_name,
-        DATE_FORMAT(c.date_commande, '%Y-%m-%d') as date_group
+        DATE_FORMAT(c.date_commande, '%Y-%m-%d') as date_group,
+        DATE_FORMAT(c.date_livraison, '%Y-%m-%d') as date_livraison_group
     FROM {$from_clause}
     WHERE {$where_sql}
 ";
