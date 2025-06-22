@@ -139,6 +139,13 @@ try {
                                 <option value="livré">Livré</option>
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <label for="dateType" class="form-label">Filtrer par</label>
+                            <select id="dateType" class="form-select builder-control">
+                                <option value="date_commande">Date de commande</option>
+                                <option value="date_livraison">Date de livraison</option>
+                            </select>
+                        </div>
                     </div>
                      <div class="row g-3 mt-1">
                         <div class="col-md-3">
@@ -382,6 +389,7 @@ try {
                 category: document.getElementById('categoryFilter').value,
                 promo: document.getElementById('promoFilter').checked,
                 pointure: document.getElementById('pointureFilter').value,
+                dateType: document.getElementById('dateType').value,
             });
 
             checkCompatibility(); // Affiche un avertissement si nécessaire

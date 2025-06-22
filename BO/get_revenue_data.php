@@ -28,6 +28,8 @@ $measures = [
 // --- Récupération et validation des entrées ---
 $x_axis_key = $_GET['xAxis'] ?? 'p.catégorie';
 $y_axis_key = $_GET['yAxis'] ?? 'PRODUCT_REVENUE';
+$date_type = $_GET['dateType'] ?? 'date_commande';
+$date_column = ($date_type === 'date_livraison') ? 'c.date_livraison' : 'c.date_commande';
 
 if (!isset($dimensions[$x_axis_key]) || !isset($measures[$y_axis_key])) {
     http_response_code(400);
@@ -52,14 +54,15 @@ $from_clause = 'commande c
 
 $params = [];
 $where_clauses = ['1=1'];
-if (!empty($_GET['startDate'])) { $where_clauses[] = "c.date_commande >= :startDate"; $params[':startDate'] = $_GET['startDate']; }
-if (!empty($_GET['endDate'])) { $endDate = new DateTime($_GET['endDate']); $endDate->modify('+1 day'); $where_clauses[] = "c.date_commande < :endDate"; $params[':endDate'] = $endDate->format('Y-m-d'); }
+if (!empty($_GET['startDate'])) { $where_clauses[] = "$date_column >= :startDate"; $params[':startDate'] = $_GET['startDate']; }
+if (!empty($_GET['endDate'])) { $endDate = new DateTime($_GET['endDate']); $endDate->modify('+1 day'); $where_clauses[] = "$date_column < :endDate"; $params[':endDate'] = $endDate->format('Y-m-d'); }
 if (!empty($_GET['status'])) { $where_clauses[] = "c.statut = :status"; $params[':status'] = $_GET['status']; }
 if (!empty($_GET['userId'])) { $where_clauses[] = "c.id_user = :userId"; $params[':userId'] = $_GET['userId']; }
 if (!empty($_GET['category'])) { $where_clauses[] = "p.catégorie = :category"; $params[':category'] = $_GET['category']; }
 if (!empty($_GET['brand'])) { $where_clauses[] = "p.marque = :brand"; $params[':brand'] = $_GET['brand']; }
 if (isset($_GET['promo']) && $_GET['promo'] === 'true') { $where_clauses[] = "p.id_promotion IS NOT NULL"; }
 if (!empty($_GET['pointure'])) { $where_clauses[] = "cp.id_pointure = :pointureId"; $params[':pointureId'] = $_GET['pointure']; }
+if ($date_type === 'date_livraison') { $where_clauses[] = "c.statut = 'livré'"; }
 
 $where_sql = implode(' AND ', $where_clauses);
 

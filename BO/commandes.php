@@ -411,56 +411,42 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Gestionnaire pour le formulaire d'expédition
         document.addEventListener('submit', function(e) {
-            if (e.target && e.target.id === 'shippingForm') {
+            // --- Gestion modification date livraison ---
+            if (e.target && e.target.id === 'updateLivraisonForm') {
                 e.preventDefault();
-                
                 const form = e.target;
-                const submitButton = form.querySelector('button[type="submit"]');
-                const originalButtonHtml = submitButton.innerHTML;
-
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Expédition...';
+                const msgDiv = form.parentElement.querySelector('#updateLivraisonMsg');
+                msgDiv.innerHTML = '';
+                const btn = form.querySelector('button[type="submit"]');
+                const originalBtn = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mise à jour...';
 
                 const formData = new FormData();
                 formData.append('id', currentOrderId);
+                formData.append('date_livraison', form.date_livraison.value);
 
-                fetch('expedier_commande.php', {
+                fetch('update_livraison.php', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        detailsModal.hide();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Commande Expédiée !',
-                            text: data.message || 'La commande a été marquée comme expédiée et le client a été notifié.',
-                            timer: 3500,
-                            timerProgressBar: true
-                        }).then(() => {
-                            location.reload();
-                        });
+                        msgDiv.innerHTML = '<div class="alert alert-success py-2">' + data.message + '</div>';
+                        setTimeout(() => location.reload(), 1200);
                     } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Erreur d\'expédition',
-                            text: data.message || 'Une erreur est survenue.',
-                        });
+                        msgDiv.innerHTML = '<div class="alert alert-danger py-2">' + (data.message || 'Erreur inconnue') + '</div>';
                     }
                 })
-                .catch(error => {
-                     Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur de Communication',
-                        text: 'Impossible de contacter le serveur.',
-                    });
-                    console.error('Error:', error);
+                .catch(() => {
+                    msgDiv.innerHTML = '<div class="alert alert-danger py-2">Erreur de communication avec le serveur.</div>';
                 })
                 .finally(() => {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonHtml;
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtn;
                 });
+                return;
             }
         });
     </script>

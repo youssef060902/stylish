@@ -183,6 +183,29 @@ $discount = ($subtotal + $shipping_cost) - $total_in_db;
     </div>
 </div>
 
+<!-- Modification manuelle de la date de livraison -->
+<?php if ($order['statut'] !== 'livré'): ?>
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-info">
+        <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Modifier la date de livraison prévue</h6>
+    </div>
+    <div class="card-body">
+        <form id="updateLivraisonForm" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="dateLivraisonInput" class="form-label">Date et heure de livraison prévue</label>
+                <input type="datetime-local" class="form-control" id="dateLivraisonInput" name="date_livraison" value="<?php echo $order['date_livraison'] ? date('Y-m-d\TH:i', strtotime($order['date_livraison'])) : ''; ?>" required>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Mettre à jour la date
+                </button>
+            </div>
+        </form>
+        <div id="updateLivraisonMsg" class="mt-2"></div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Section Expédition (Conditionnelle) -->
 <?php if ($order['statut'] === 'en préparation'): ?>
 <div class="card shadow-sm mt-4">
