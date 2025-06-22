@@ -35,10 +35,11 @@ function getProduitsCommande($pdo, $id_commande) {
         .commande-card { box-shadow: 0 2px 8px #e0e0e044; border-radius: 10px; background: #fff; margin-bottom: 2rem; }
         .commande-header { background: #f8f9fa; border-radius: 10px 10px 0 0; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
         .commande-status { font-weight: bold; }
-        .commande-status.en-attente { color: #e67e22; }
-        .commande-status.confirmé { color: #27ae60; }
-        .commande-status.livré { color: #2980b9; }
-        .commande-status.en-cours { color: #f39c12; }
+        .commande-status.en-attente { color: #e67e22; }       /* Orange */
+        .commande-status.confirmé { color: #f39c12; }         /* Jaune-orangé */
+        .commande-status.en-préparation { color: #3498db; }  /* Bleu */
+        .commande-status.expédié { color: #8e44ad; }           /* Violet */
+        .commande-status.livré { color: #27ae60; }            /* Vert */
         .commande-body { padding: 1.5rem; }
         .table th, .table td { vertical-align: middle; }
         .badge-coupon { background: #e74c3c; color: #fff; font-size: 0.95em; }
