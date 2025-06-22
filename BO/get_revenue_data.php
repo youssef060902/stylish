@@ -13,7 +13,8 @@ $dimensions = [
     'p.marque' => ['expression' => 'marque', 'requires' => ['produit']],
     'c.statut' => ['expression' => 'statut', 'requires' => []],
     'u.id' => ['expression' => 'user_name', 'requires' => ['user']],
-    'on_promotion' => ['expression' => 'on_promotion', 'requires' => ['produit']]
+    'on_promotion' => ['expression' => 'on_promotion', 'requires' => ['produit']],
+    'date_commande' => ['expression' => 'date_group', 'requires' => []]
 ];
 
 $measures = [
@@ -21,7 +22,7 @@ $measures = [
     'ORDER_REVENUE_NET' => ['expression' => 'order_total_net'],
     'SUM_QUANTITY' => ['expression' => 'quantite'],
     'COUNT_ORDERS' => ['expression' => 'order_id'], // Will be counted distinct
-    'AVG_ORDER_VALUE' => ['expression' => 'order_total_gross'] // Will be averaged
+    'AVG_ORDER_VALUE' => ['expression' => 'order_total_net'] // Will be averaged
 ];
 
 // --- Récupération et validation des entrées ---
@@ -58,6 +59,7 @@ if (!empty($_GET['userId'])) { $where_clauses[] = "c.id_user = :userId"; $params
 if (!empty($_GET['category'])) { $where_clauses[] = "p.catégorie = :category"; $params[':category'] = $_GET['category']; }
 if (!empty($_GET['brand'])) { $where_clauses[] = "p.marque = :brand"; $params[':brand'] = $_GET['brand']; }
 if (isset($_GET['promo']) && $_GET['promo'] === 'true') { $where_clauses[] = "p.id_promotion IS NOT NULL"; }
+if (!empty($_GET['pointure'])) { $where_clauses[] = "cp.id_pointure = :pointureId"; $params[':pointureId'] = $_GET['pointure']; }
 
 $where_sql = implode(' AND ', $where_clauses);
 
@@ -66,7 +68,8 @@ $master_sql = "
         c.id as order_id, c.total as order_total_gross, (c.total - 7) as order_total_net, c.statut,
         cp.quantite, (cp.prix_unitaire * cp.quantite) as product_line_revenue,
         p.catégorie, p.marque, CASE WHEN p.id_promotion IS NOT NULL THEN 'En Promotion' ELSE 'Sans Promotion' END as on_promotion,
-        CONCAT(u.prenom, ' ', u.nom) as user_name
+        CONCAT(u.prenom, ' ', u.nom) as user_name,
+        DATE_FORMAT(c.date_commande, '%Y-%m-%d') as date_group
     FROM {$from_clause}
     WHERE {$where_sql}
 ";
@@ -76,25 +79,30 @@ $stmt->execute($params);
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // --- Étape 2: Calcul des KPIs et agrégation pour le graphique à partir des données brutes ---
+
+// KPIs directs sur les résultats filtrés
+$total_products_sold = array_sum(array_column($results, 'quantite'));
+$order_count = count(array_unique(array_column($results, 'order_id')));
+
+// Calcul du revenu total selon l'ancienne méthode (somme des totaux des commandes uniques)
+$total_revenue_net = 0;
+$processed_orders_for_revenue = [];
+foreach ($results as $row) {
+    if (!isset($processed_orders_for_revenue[$row['order_id']])) {
+        $total_revenue_net += $row['order_total_net'];
+        $processed_orders_for_revenue[$row['order_id']] = true;
+    }
+}
+
 $kpis = [
-    'total_revenue_net' => 0,
-    'total_revenue_gross' => 0,
-    'order_count' => 0,
-    'total_products_sold' => 0
+    'total_revenue_net' => $total_revenue_net,
+    'order_count' => $order_count,
+    'total_products_sold' => $total_products_sold
 ];
+
 $chart_aggregation = [];
-$processed_orders = [];
 
 foreach($results as $row) {
-    // Calcul des KPIs (une seule fois par commande)
-    if (!isset($processed_orders[$row['order_id']])) {
-        $kpis['total_revenue_net'] += $row['order_total_net'];
-        $kpis['total_revenue_gross'] += $row['order_total_gross'];
-        $processed_orders[$row['order_id']] = true;
-    }
-
-    $kpis['total_products_sold'] += $row['quantite'];
-
     // Agrégation pour le graphique
     $label = $row[$x_axis['expression']];
     if (!isset($chart_aggregation[$label])) {
@@ -103,7 +111,6 @@ foreach($results as $row) {
     // Stocker toutes les valeurs nécessaires pour chaque label
     $chart_aggregation[$label][] = $row;
 }
-$kpis['order_count'] = count($processed_orders);
 
 
 // --- Étape 3: Finaliser le calcul du graphique basé sur la mesure choisie ---

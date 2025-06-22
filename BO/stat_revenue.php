@@ -28,6 +28,7 @@ try {
     // Récupérer les marques et catégories pour les filtres
     $marques = $pdo->query("SELECT DISTINCT marque FROM produit ORDER BY marque")->fetchAll(PDO::FETCH_COLUMN);
     $categories = $pdo->query("SELECT DISTINCT catégorie FROM produit ORDER BY catégorie")->fetchAll(PDO::FETCH_COLUMN);
+    $pointures = $pdo->query("SELECT id, pointure FROM pointures ORDER BY pointure ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 
 } catch (PDOException $e) {
@@ -35,6 +36,7 @@ try {
     $users_with_orders = [];
     $marques = [];
     $categories = [];
+    $pointures = [];
     $db_error = "Erreur de connexion à la base de données : " . $e->getMessage();
 }
 ?>
@@ -79,6 +81,7 @@ try {
                         <div class="col-md-4">
                             <label for="xAxisSelector" class="form-label fw-bold">Axe X (Grouper par)</label>
                             <select id="xAxisSelector" class="form-select builder-control">
+                                <option value="date_commande">Date</option>
                                 <option value="p.catégorie">Catégorie Produit</option>
                                 <option value="p.marque">Marque Produit</option>
                                 <option value="c.statut">Statut Commande</option>
@@ -92,7 +95,7 @@ try {
                                 <option value="ORDER_REVENUE_NET">Revenu Commandes (Net)</option>
                                 <option value="SUM_QUANTITY">Nombre de Produits Vendus</option>
                                 <option value="COUNT_ORDERS">Nombre de Commandes</option>
-                                <option value="AVG_ORDER_VALUE">Panier Moyen (Brut)</option>
+                                <option value="AVG_ORDER_VALUE">Revenu Moyen (Net)</option>
                             </select>
                         </div>
                          <div class="col-md-4">
@@ -153,6 +156,15 @@ try {
                                 <option value="">Toutes</option>
                                 <?php foreach($marques as $marque): ?>
                                     <option value="<?php echo htmlspecialchars($marque); ?>"><?php echo htmlspecialchars($marque); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="pointureFilter" class="form-label">Pointure</label>
+                            <select id="pointureFilter" class="form-select builder-control">
+                                <option value="">Toutes</option>
+                                <?php foreach($pointures as $p): ?>
+                                    <option value="<?php echo $p['id']; ?>"><?php echo htmlspecialchars($p['pointure']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -369,6 +381,7 @@ try {
                 brand: document.getElementById('brandFilter').value,
                 category: document.getElementById('categoryFilter').value,
                 promo: document.getElementById('promoFilter').checked,
+                pointure: document.getElementById('pointureFilter').value,
             });
 
             checkCompatibility(); // Affiche un avertissement si nécessaire
