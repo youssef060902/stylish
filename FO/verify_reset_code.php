@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -31,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Mettre à jour le mot de passe
-        $conn = new mysqli("localhost", "root", "", "stylish");
         $stmt = $conn->prepare("UPDATE user SET password = ? WHERE email = ?");
         $stmt->bind_param("ss", $new_password, $_SESSION['reset_email']);
         

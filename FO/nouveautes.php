@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/../config/database.php';
 
 ?>
 <!DOCTYPE html>
@@ -509,45 +513,25 @@
 
 <body>
   <?php
-  // Connexion à la base de données
-  $host = 'localhost';
-  $dbname = 'stylish';
-  $username = 'root';
-  $password = '';
+  // Récupérer les catégories uniques
+  $stmt_categories = $pdo->query("SELECT DISTINCT catégorie FROM produit ORDER BY catégorie");
+  $categories = $stmt_categories->fetchAll(PDO::FETCH_COLUMN);
 
-  try {
-      $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-      $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-      $pdo->exec("SET NAMES utf8");
+  // Récupérer les types uniques
+  $stmt_types = $pdo->query("SELECT DISTINCT type FROM produit ORDER BY type");
+  $types = $stmt_types->fetchAll(PDO::FETCH_COLUMN);
 
-      // Récupérer les catégories uniques
-      $stmt_categories = $pdo->query("SELECT DISTINCT catégorie FROM produit ORDER BY catégorie");
-      $categories = $stmt_categories->fetchAll(PDO::FETCH_COLUMN);
+  // Récupérer les couleurs uniques
+  $stmt_colors = $pdo->query("SELECT DISTINCT couleur FROM produit ORDER BY couleur");
+  $colors = $stmt_colors->fetchAll(PDO::FETCH_COLUMN);
 
-      // Récupérer les types uniques
-      $stmt_types = $pdo->query("SELECT DISTINCT type FROM produit ORDER BY type");
-      $types = $stmt_types->fetchAll(PDO::FETCH_COLUMN);
+  // Récupérer les marques uniques
+  $stmt_brands = $pdo->query("SELECT DISTINCT marque FROM produit ORDER BY marque");
+  $brands = $stmt_brands->fetchAll(PDO::FETCH_COLUMN);
 
-      // Récupérer les couleurs uniques
-      $stmt_colors = $pdo->query("SELECT DISTINCT couleur FROM produit ORDER BY couleur");
-      $colors = $stmt_colors->fetchAll(PDO::FETCH_COLUMN);
-
-      // Récupérer les marques uniques
-      $stmt_brands = $pdo->query("SELECT DISTINCT marque FROM produit ORDER BY marque");
-      $brands = $stmt_brands->fetchAll(PDO::FETCH_COLUMN);
-
-      // Récupérer les pointures disponibles
-      $stmt_sizes = $pdo->query("SELECT DISTINCT p.pointure FROM pointures p JOIN pointure_produit pp ON p.id = pp.id_pointure ORDER BY p.pointure");
-      $sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
-
-  } catch(PDOException $e) {
-      echo "Erreur de connexion à la base de données : " . $e->getMessage();
-      $categories = [];
-      $types = [];
-      $colors = [];
-      $brands = [];
-      $sizes = [];
-  }
+  // Récupérer les pointures disponibles
+  $stmt_sizes = $pdo->query("SELECT DISTINCT p.pointure FROM pointures p JOIN pointure_produit pp ON p.id = pp.id_pointure ORDER BY p.pointure");
+  $sizes = $stmt_sizes->fetchAll(PDO::FETCH_COLUMN);
   ?>
   <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="heart" viewBox="0 0 24 24">
@@ -564,7 +548,7 @@
   <section id="latest-products" class="product-store py-2 my-2 py-md-5 my-md-5 pt-0">
     <div class="container-md">
       <div class="display-header d-flex align-items-center justify-content-center">
-        <h2 class="section-title-center text-uppercase">Latest Products</h2>
+        <h2 class="section-title-center text-uppercase">Les nouveaux produits</h2>
       </div>
       <div class="row">
         <div class="col-md-3">
@@ -695,36 +679,47 @@
 
   // Fonction pour charger les produits filtrés via AJAX
   function loadFilteredProducts() {
-      const form = document.getElementById('filterForm');
-      const formData = new FormData(form);
       const params = new URLSearchParams();
-
-      for (const pair of formData.entries()) {
-          // Pour les checkboxes multiples, FormData renvoie une entrée par sélection
-          if (pair[0].endsWith('[]')) {
-              params.append(pair[0], pair[1]);
-          } else {
-              params.set(pair[0], pair[1]);
-          }
-      }
-      params.set('page', currentPage); // Add current page parameter
-
+      // Catégories
+      document.querySelectorAll('input[name="categories[]"]:checked').forEach(cb => {
+          params.append('categories[]', cb.value);
+      });
+      // Types
+      document.querySelectorAll('input[name="types[]"]:checked').forEach(cb => {
+          params.append('types[]', cb.value);
+      });
+      // Couleurs
+      document.querySelectorAll('input[name="colors[]"]:checked').forEach(cb => {
+          params.append('colors[]', cb.value);
+      });
+      // Marques
+      document.querySelectorAll('input[name="brands[]"]:checked').forEach(cb => {
+          params.append('brands[]', cb.value);
+      });
+      // Pointures
+      document.querySelectorAll('input[name="sizes[]"]:checked').forEach(cb => {
+          params.append('sizes[]', cb.value);
+      });
+      // Prix min/max
+      const minPrice = document.getElementById('min-price').value;
+      const maxPrice = document.getElementById('max-price').value;
+      if (minPrice) params.append('min_price', minPrice);
+      if (maxPrice) params.append('max_price', maxPrice);
+      params.set('page', currentPage);
       fetch(`get_filtered_products.php?${params.toString()}`)
-          .then(response => response.json()) // Expect JSON response
+          .then(response => response.json())
           .then(data => {
               if (data.success) {
                   document.getElementById('product-list-container').innerHTML = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">${data.html}</div>`;
                   renderPaginationControls(data.total_pages, data.current_page);
               } else {
-                  console.error('Erreur lors du chargement des produits filtrés:', data.message);
                   document.getElementById('product-list-container').innerHTML = data.html;
-                  document.getElementById('pagination-controls').innerHTML = ''; // Clear pagination on error
+                  document.getElementById('pagination-controls').innerHTML = '';
               }
           })
           .catch(error => {
-              console.error('Erreur lors du chargement des produits filtrés:', error);
               document.getElementById('product-list-container').innerHTML = '<div class="col-12"><p class="text-center text-danger">Erreur lors du chargement des produits.</p></div>';
-              document.getElementById('pagination-controls').innerHTML = ''; // Clear pagination on error
+              document.getElementById('pagination-controls').innerHTML = '';
           });
   }
 

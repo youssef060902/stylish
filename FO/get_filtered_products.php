@@ -1,9 +1,8 @@
 <?php
-// Connexion à la base de données
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
+file_put_contents(__DIR__ . '/../debug_filters.txt', print_r($_GET, true));
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+require_once __DIR__ . '/../config/database.php';
 
 header('Content-Type: application/json');
 
@@ -12,11 +11,6 @@ $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $products_per_page;
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false, // Désactiver l'émulation des requêtes préparées
-    ]);
     $pdo->exec("SET NAMES utf8");
 
     $conditions = [];
@@ -84,7 +78,7 @@ try {
         $count_sql .= " JOIN pointure_produit pp ON p.id = pp.id_produit";
     }
     if (!empty($conditions)) {
-        $count_sql .= " WHERE " . implode(' AND ', array_map(function($cond) { return str_replace('p.', '', $cond); }, $conditions));
+        $count_sql .= " WHERE " . implode(' AND ', $conditions);
     }
 
     $count_stmt = $pdo->prepare($count_sql);
@@ -106,10 +100,12 @@ try {
         $sql .= " WHERE " . implode(' AND ', $conditions);
     }
     
-    $sql .= " GROUP BY p.id ORDER BY p.date_ajout DESC LIMIT ? OFFSET ?";
+    $limit = (int)$products_per_page;
+    $offset = (int)$offset;
+    $sql .= " GROUP BY p.id ORDER BY p.date_ajout DESC LIMIT $limit OFFSET $offset";
 
-    $params[] = (int)$products_per_page;
-    $params[] = (int)$offset;
+    // Debug temporaire
+    file_put_contents(__DIR__ . '/../debug_sql.txt', $sql . "\n" . print_r($params, true));
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -169,7 +165,7 @@ try {
 } catch(PDOException $e) {
     echo json_encode([
         'success' => false,
-        'message' => 'Erreur lors du chargement des produits: ' . $e->getMessage(),
-        'html' => '<div class="col-12"><p class="text-center text-danger">Erreur lors du chargement des produits.</p></div>'
+        'message' => 'Erreur SQL : ' . $e->getMessage(),
+        'html' => '<div class="col-12"><p class="text-center text-danger">Erreur SQL : ' . $e->getMessage() . '</p></div>'
     ]);
 } 

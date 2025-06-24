@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../config/database.php';
+
 // Configuration OAuth2
 $client_id = '906846133961-b07e4jjvn870fjpeaalhctrgtu9q2ooc.apps.googleusercontent.com';
 $client_secret = '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';
@@ -1701,132 +1703,132 @@ if (isset($_SESSION['user_id'])) {
         </button>
         <!-- Liens de navigation repliables -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul id="navbar" class="navbar-nav fw-bold align-items-center flex-grow-0">
-            <li class="nav-item">
-              <a class="nav-link me-5" href="nouveautes.php">Nouveautés</a>
+        <ul id="navbar" class="navbar-nav fw-bold align-items-center flex-grow-0">
+          <li class="nav-item">
+            <a class="nav-link me-5" href="nouveautes.php">Nouveautés</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link me-5" href="hommes.php">Hommes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link me-5" href="femmes.php">Femmes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link me-5" href="enfants.php">Enfants</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link me-5" href="promotions.php">Promotions</a>
+          </li>
+        </ul>
+          <div class="search-container mx-auto my-2 my-lg-0 position-relative" style="max-width: 400px; min-width: 180px;">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 18px;"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un produit...">
+          <div id="searchResults" class="search-results"></div>
+        </div>
+          <div class="user-items ms-auto my-2 my-lg-0 d-flex align-items-center">
+          <ul class="d-flex justify-content-end list-unstyled align-item-center m-0">
+            <li class="pe-3">
+              <?php if(isset($_SESSION['user_id'])): ?>
+                <div class="dropdown">
+                  <button class="btn btn-link dropdown-toggle text-dark text-decoration-none d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <?php if(!empty($_SESSION['user_image'])): ?>
+                      <img src="<?php echo htmlspecialchars($_SESSION['user_image']); ?>" alt="Profil" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
+                    <?php else: ?>
+                      <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-weight:bold;">
+                        <?php echo strtoupper(substr($_SESSION['user_prenom'], 0, 1)); ?>
+                      </div>
+                    <?php endif; ?>
+                    <span class="fw-semibold" style="font-size: 0.9rem;">
+                      <?php echo htmlspecialchars($_SESSION['user_prenom']); ?>
+                    </span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <div class="dropdown-header">Compte</div>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalSettings" data-initialized="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+                          <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                          <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.256-.52l-.093-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+                        </svg>
+                        Paramètres
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalChangePassword">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
+                          <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
+                          <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                        </svg>
+                        Changer mot de passe
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="mes_commandes.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708l1.146 1.147 2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                          <path d="M1.5 2.5A.5.5 0 0 1 2 2h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 6h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 10h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                        Mes commandes
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="favorites.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                          <path d="m8 2.748-.717-.737C5.6.281 2.514 3.053 3.824 6.143c.636 1.528 2.293 3.356 4.176 4.857 1.883-1.5 3.54-3.329 4.176-4.857C13.486 3.053 10.4.28 8.717 2.01L8 2.748zm0 8.684C-7.333 3.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171.057-.059.116-.116.176-.171C12.721-3.042 23.333 3.868 8 11.432z"/>
+                        </svg>
+                        Mes favoris
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2" href="reclamations.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
+                          <path d="M2 2a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2.586l2.707 2.707a1 1 0 0 0 1.414 0L11.414 13H14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2.586l-2.707 2.707a.5.5 0 0 1-.708 0L5.586 11H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+                          <circle cx="5" cy="8" r="1"/>
+                          <circle cx="8" cy="8" r="1"/>
+                          <circle cx="11" cy="8" r="1"/>
+                        </svg>
+                        Mes réclamations
+                      </a>
+                    </li>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-header">Actions</div>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalDeleteAccount">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                        Supprimer le compte
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="logout.php">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                          <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                        Déconnexion
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              <?php else: ?>
+                <a href="#" data-bs-toggle="modal" data-bs-target="#modallogin" class="border-0">
+                  <svg class="user" width="24" height="24">
+                    <use xlink:href="#user"></use>
+                  </svg>
+                </a>
+              <?php endif; ?>
             </li>
-            <li class="nav-item">
-              <a class="nav-link me-5" href="hommes.php">Hommes</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link me-5" href="femmes.php">Femmes</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link me-5" href="enfants.php">Enfants</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link me-5" href="promotions.php">Promotions</a>
+            <li class="pe-3">
+              <a href="#" id="cartModalToggle" class="border-0 position-relative">
+                <svg class="shopping-cart" width="24" height="24">
+                  <use xlink:href="#shopping-cart"></use>
+                </svg>
+                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem;z-index:1001;display:none;">0</span>
+              </a>
             </li>
           </ul>
-          <div class="search-container mx-auto my-2 my-lg-0 position-relative" style="max-width: 400px; min-width: 180px;">
-            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 18px;"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            <input type="text" id="searchInput" class="search-input" placeholder="Rechercher un produit...">
-            <div id="searchResults" class="search-results"></div>
-          </div>
-          <div class="user-items ms-auto my-2 my-lg-0 d-flex align-items-center">
-            <ul class="d-flex justify-content-end list-unstyled align-item-center m-0">
-              <li class="pe-3">
-                <?php if(isset($_SESSION['user_id'])): ?>
-                  <div class="dropdown">
-                    <button class="btn btn-link dropdown-toggle text-dark text-decoration-none d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <?php if(!empty($_SESSION['user_image'])): ?>
-                        <img src="<?php echo htmlspecialchars($_SESSION['user_image']); ?>" alt="Profil" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;">
-                      <?php else: ?>
-                        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-weight:bold;">
-                          <?php echo strtoupper(substr($_SESSION['user_prenom'], 0, 1)); ?>
-                        </div>
-                      <?php endif; ?>
-                      <span class="fw-semibold" style="font-size: 0.9rem;">
-                        <?php echo htmlspecialchars($_SESSION['user_prenom']); ?>
-                      </span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                      <div class="dropdown-header">Compte</div>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalSettings" data-initialized="false">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
-                            <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
-                            <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.256-.52l-.093-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
-                          </svg>
-                          Paramètres
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#modalChangePassword">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-key" viewBox="0 0 16 16">
-                            <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
-                            <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                          </svg>
-                          Changer mot de passe
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="mes_commandes.php">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M10.854 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708l1.146 1.147 2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                            <path d="M1.5 2.5A.5.5 0 0 1 2 2h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 6h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 10h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5z"/>
-                          </svg>
-                          Mes commandes
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="favorites.php">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                            <path d="m8 2.748-.717-.737C5.6.281 2.514 3.053 3.824 6.143c.636 1.528 2.293 3.356 4.176 4.857 1.883-1.5 3.54-3.329 4.176-4.857C13.486 3.053 10.4.28 8.717 2.01L8 2.748zm0 8.684C-7.333 3.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171.057-.059.116-.116.176-.171C12.721-3.042 23.333 3.868 8 11.432z"/>
-                          </svg>
-                          Mes favoris
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2" href="reclamations.php">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-dots" viewBox="0 0 16 16">
-                            <path d="M2 2a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2.586l2.707 2.707a1 1 0 0 0 1.414 0L11.414 13H14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm0 1h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-2.586l-2.707 2.707a.5.5 0 0 1-.708 0L5.586 11H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
-                            <circle cx="5" cy="8" r="1"/>
-                            <circle cx="8" cy="8" r="1"/>
-                            <circle cx="11" cy="8" r="1"/>
-                          </svg>
-                          Mes réclamations
-                        </a>
-                      </li>
-                      <div class="dropdown-divider"></div>
-                      <div class="dropdown-header">Actions</div>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalDeleteAccount">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                          </svg>
-                          Supprimer le compte
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="logout.php">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
-                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
-                          </svg>
-                          Déconnexion
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                <?php else: ?>
-                  <a href="#" data-bs-toggle="modal" data-bs-target="#modallogin" class="border-0">
-                    <svg class="user" width="24" height="24">
-                      <use xlink:href="#user"></use>
-                    </svg>
-                  </a>
-                <?php endif; ?>
-              </li>
-              <li class="pe-3">
-                <a href="#" id="cartModalToggle" class="border-0 position-relative">
-                  <svg class="shopping-cart" width="24" height="24">
-                    <use xlink:href="#shopping-cart"></use>
-                  </svg>
-                  <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.8rem;z-index:1001;display:none;">0</span>
-                </a>
-              </li>
-            </ul>
           </div>
         </div>
       </div>
@@ -3145,11 +3147,11 @@ if (isset($_SESSION['user_id'])) {
           }
       }
   
-          // Configuration pour le modal "Register"
-          setupImageUpload('register-image-input', 'register-image-preview-img', 'register-image-remove-x');
+      // Configuration pour le modal "Register"
+      setupImageUpload('register-image-input', 'register-image-preview-img', 'register-image-remove-x');
   
-          // Configuration pour le modal "Settings"
-          setupImageUpload('settings-image-input', 'settings-image-preview-img', 'settings-image-remove-x', 'delete_image_input');
+      // Configuration pour le modal "Settings"
+      setupImageUpload('settings-image-input', 'settings-image-preview-img', 'settings-image-remove-x', 'delete_image_input');
   });
   </script>
 

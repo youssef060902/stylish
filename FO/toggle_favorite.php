@@ -2,6 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../config/database.php';
+
 $response = ['success' => false, 'message' => ''];
 
 if (!isset($_SESSION['user_id'])) {
@@ -22,11 +24,6 @@ if (!$productId || !is_numeric($productId)) {
 }
 
 $productId = (int)$productId;
-
-$host = 'localhost';
-$db = 'stylish';
-$user = 'root';
-$pass = '';
 
 $conn = new mysqli($host, $user, $pass, $db);
 

@@ -2,21 +2,13 @@
 session_start();
 header('Content-Type: application/json');
 require 'vendor/autoload.php';
+require_once __DIR__ . '/../config/database.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 $mail = new PHPMailer(true);
 // Connexion à la base de données
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "stylish";
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => "Erreur de connexion à la base de données"]);
-    exit;
-}
 
 // Récupération des données POST
 $prenom = $_POST['prenom'] ?? '';

@@ -1,8 +1,6 @@
 <?php
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
+// Inclure la configuration de la base de données
+require_once __DIR__ . '/../config/database.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -145,9 +143,7 @@ $password = '';
       <?php
       $user_id = $_SESSION['user_id'];
       try {
-        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->exec("SET NAMES utf8");
+        // La connexion $pdo est déjà disponible grâce au fichier de configuration
         
         // Récupération des réclamations
         $stmt = $pdo->prepare("SELECT r.*, p.nom as nom_produit FROM reclamation r 

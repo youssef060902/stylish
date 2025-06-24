@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'vendor/autoload.php';
+require_once __DIR__ . '/../config/database.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -9,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     
     // Vérifier si l'email existe dans la base de données
-    $conn = new mysqli("localhost", "root", "", "stylish");
     $stmt = $conn->prepare("SELECT * FROM user WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();

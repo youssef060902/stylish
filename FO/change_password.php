@@ -1,22 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-// Configuration de la base de données
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "stylish";
-
-try {
-    $conn = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Erreur de connexion à la base de données.'
-    ]);
-    exit;
-}
+require_once __DIR__ . '/../config/database.php';
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
@@ -52,9 +37,9 @@ if ($new_password !== $confirm_new_password) {
 
 try {
     // Récupérer le mot de passe actuel de l'utilisateur
-    $stmt = $conn->prepare("SELECT password FROM user WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT password FROM user WHERE id = ?");
     $stmt->execute([$user_id]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         echo json_encode([
@@ -74,7 +59,7 @@ try {
     }
 
     // Mettre à jour le mot de passe (en clair)
-    $stmt = $conn->prepare("UPDATE user SET password = ? WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE user SET password = ? WHERE id = ?");
     $stmt->execute([$new_password, $user_id]);
 
     echo json_encode([

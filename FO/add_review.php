@@ -1,25 +1,11 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 session_start();
 header('Content-Type: application/json');
 
 // Vérification de la connexion
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Vous devez être connecté pour ajouter un avis']);
-    exit();
-}
-
-// Connexion à la base de données
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Erreur de connexion à la base de données']);
     exit();
 }
 

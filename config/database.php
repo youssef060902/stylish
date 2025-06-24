@@ -1,17 +1,23 @@
 <?php
+// Paramètres de la base de données
 $host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
+$user = 'root';
+$pass = '';
+$db   = 'stylish';
 
+// Connexion MySQLi (utilisée par la plupart du site)
+$conn = new mysqli($host, $user, $pass, $db);
+
+// Vérification de la connexion MySQLi
+if ($conn->connect_error) {
+    die("La connexion MySQLi a échoué : " . $conn->connect_error);
+}
+
+// Connexion PDO (pour les parties qui l'utilisent)
 try {
-    $conn = new mysqli($host, $username, $password, $dbname);
-    $conn->set_charset("utf8mb4");
-    
-    if ($conn->connect_error) {
-        throw new Exception("Erreur de connexion : " . $conn->connect_error);
-    }
-} catch(Exception $e) {
-    die("Erreur de connexion : " . $e->getMessage());
+    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("La connexion PDO a échoué : " . $e->getMessage());
 }
 ?> 

@@ -1,12 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-$pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+require_once __DIR__ . '/../config/database.php';
 
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {

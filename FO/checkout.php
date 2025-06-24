@@ -1,11 +1,8 @@
 <?php
-// Inclure le header et les styles
- include 'header.php'; 
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-$pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+// Inclure le header et la configuration de la base de données
+require_once __DIR__ . '/../config/database.php';
+include 'header.php'; 
+
 
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {

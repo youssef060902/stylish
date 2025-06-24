@@ -2,6 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../config/database.php';
+
 $response = ['success' => false, 'message' => ''];
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -20,11 +22,6 @@ if (!$userId) {
     echo json_encode($response);
     exit;
 }
-
-$host = 'localhost';
-$db = 'stylish';
-$user = 'root';
-$pass = '';
 
 $conn = new mysqli($host, $user, $pass, $db);
 

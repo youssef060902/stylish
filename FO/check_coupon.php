@@ -1,10 +1,11 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
+
 $code = trim($_POST['coupon'] ?? '');
 $response = ['valid' => false, 'message' => '', 'discount' => 0];
 if ($code === '') {
     $response['message'] = "Veuillez saisir un code coupon.";
 } else {
-    $pdo = new PDO("mysql:host=localhost;dbname=stylish", "root", "", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     $stmt = $pdo->prepare("SELECT discount, statut FROM coupon WHERE code = ?");
     $stmt->execute([$code]);
     $coupon = $stmt->fetch(PDO::FETCH_ASSOC);

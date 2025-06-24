@@ -4,6 +4,8 @@ ini_set('display_errors', 0);
 session_start();
 ob_start();
 
+require_once __DIR__ . '/../config/database.php';
+
 set_exception_handler(function ($exception) {
     ob_end_clean();
     header('Content-Type: application/json', true, 500);

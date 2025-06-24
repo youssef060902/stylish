@@ -1,25 +1,10 @@
 <?php
+// Inclure la configuration de la base de données
+require_once __DIR__ . '/../config/database.php';
+
 // Désactiver le rapport d'erreurs pour les utilisateurs finaux
 error_reporting(0);
 ini_set('display_errors', 0);
-
-// --- Connexion à la base de données ---
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-$pdo = null; // Initialiser à null
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    // Gérer l'erreur de connexion de manière "propre"
-    $page_title = "Erreur";
-    $error_message = "Impossible de se connecter à la base de données. Veuillez réessayer plus tard.";
-    // Inclure un template d'erreur simple ici si nécessaire
-    exit($error_message);
-}
 
 // --- Récupération des informations de la commande ---
 $order = null;

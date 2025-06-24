@@ -1,22 +1,17 @@
 <?php
 session_start();
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
 
 if (!isset($_SESSION['user_id']) || !isset($_GET['id'])) {
     echo json_encode(['success' => false, 'message' => 'Non autorisé']);
     exit();
 }
 
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
 $user_id = $_SESSION['user_id'];
 $id = $_GET['id'];
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare("SELECT * FROM reclamation WHERE id = ? AND id_user = ?");
     $stmt->execute([$id, $user_id]);
     $rec = $stmt->fetch(PDO::FETCH_ASSOC);

@@ -2,6 +2,8 @@
 session_start();
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../config/database.php';
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Vous devez être connecté pour supprimer votre compte.']);
@@ -10,18 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Connexion à la base de données
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "stylish";
-$conn = new mysqli($host, $user, $pass, $db);
 
-// Vérifier la connexion
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Erreur de connexion à la base de données.']);
-    exit;
-}
 
 try {
     // Préparer et exécuter la requête de suppression

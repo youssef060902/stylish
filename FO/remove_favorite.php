@@ -1,6 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
+require_once __DIR__ . '/../config/database.php';
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Utilisateur non connecté.']);
@@ -15,14 +16,7 @@ if (!isset($_POST['produit_id'])) {
 $user_id = $_SESSION['user_id'];
 $produit_id = intval($_POST['produit_id']);
 
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $stmt = $pdo->prepare("DELETE FROM favoris WHERE id_user = ? AND id_produit = ?");
     $stmt->execute([$user_id, $produit_id]);
     if ($stmt->rowCount() > 0) {

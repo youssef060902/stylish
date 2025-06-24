@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+require_once __DIR__ . '/../config/database.php';
+
 $host = 'localhost';
 $dbname = 'stylish';
 $username = 'root';
@@ -70,7 +74,7 @@ try {
         $count_sql .= " JOIN pointure_produit pp ON p.id = pp.id_produit";
     }
     if (!empty($conditions)) {
-        $count_sql .= " WHERE " . implode(' AND ', array_map(function($cond) { return str_replace('p.', '', $cond); }, $conditions));
+      $count_sql .= " WHERE " . implode(' AND ', $conditions);
     }
     $count_stmt = $pdo->prepare($count_sql);
     $count_stmt->execute($params);

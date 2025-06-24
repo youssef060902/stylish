@@ -1,5 +1,6 @@
 <?php
 require_once('../vendor/tecnickcom/tcpdf/tcpdf.php');
+require_once __DIR__ . '/../config/database.php';
 
 class InvoicePDF extends TCPDF {
     public function Header() {
@@ -18,7 +19,7 @@ class InvoicePDF extends TCPDF {
 }
 
 function generateInvoicePDF($commande_id) {
-    $pdo = new PDO("mysql:host=localhost;dbname=stylish", "root", "", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    global $pdo; // Utiliser la connexion PDO globale
     
     // Récupérer les informations de la commande
     $stmt = $pdo->prepare("SELECT c.*, u.email, u.nom as user_nom, u.prenom 

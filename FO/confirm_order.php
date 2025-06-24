@@ -1,17 +1,6 @@
 <?php
 session_start();
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
-}
+require_once __DIR__ . '/../config/database.php';
 
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
 $token = isset($_GET['token']) ? $_GET['token'] : '';

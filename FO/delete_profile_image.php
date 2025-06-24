@@ -2,18 +2,14 @@
 session_start();
 header('Content-Type: application/json');
 
+require_once __DIR__ . '/../config/database.php';
+
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'Vous devez être connecté pour modifier votre profil.']);
     exit;
 }
 
 try {
-    $mysqli = new mysqli("localhost", "root", "", "stylish");
-
-    if ($mysqli->connect_error) {
-        throw new Exception("Erreur de connexion : " . $mysqli->connect_error);
-    }
-
     $user_id = $_SESSION['user_id'];
     $old_image = $_SESSION['user_image'];
 
@@ -23,7 +19,7 @@ try {
     }
 
     // Mettre à jour la base de données
-    $stmt = $mysqli->prepare("UPDATE user SET image = NULL WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE user SET image = NULL WHERE id = ?");
     $stmt->bind_param("i", $user_id);
 
     if ($stmt->execute()) {
@@ -35,7 +31,6 @@ try {
     }
 
     $stmt->close();
-    $mysqli->close();
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'message' => 'Erreur : ' . $e->getMessage()]);

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 session_start();
 header('Content-Type: application/json');
 if (!isset($_SESSION['user_id'])) {
@@ -14,13 +15,8 @@ if (!$id || !$note || $note < 1 || $note > 5 || empty($commentaire)) {
     echo json_encode(['success' => false, 'message' => 'Données invalides.']);
     exit();
 }
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Utiliser la connexion PDO centralisée
     $stmt = $pdo->prepare("UPDATE avis SET note = ?, commentaire = ?, date_modification = NOW() WHERE id = ? AND id_user = ?");
     $stmt->execute([$note, $commentaire, $id, $user_id]);
     if ($stmt->rowCount() > 0) {

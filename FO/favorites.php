@@ -1,3 +1,5 @@
+<?php
+require_once __DIR__ . '/../config/database.php';?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -114,12 +116,7 @@
     <?php else: ?>
       <?php
       $user_id = $_SESSION['user_id'];
-      $host = 'localhost';
-      $dbname = 'stylish';
-      $username = 'root';
-      $password = '';
       try {
-        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->exec("SET NAMES utf8");
         $stmt = $pdo->prepare("SELECT p.*, pr.discount, pr.id AS promo_id FROM produit p JOIN favoris f ON p.id = f.id_produit LEFT JOIN promotion pr ON p.id_promotion = pr.id WHERE f.id_user = ?");

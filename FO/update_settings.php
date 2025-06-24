@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../config/database.php';
+
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
@@ -9,12 +11,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 try {
-    $mysqli = new mysqli("localhost", "root", "", "stylish");
-
-    if ($mysqli->connect_error) {
-        throw new Exception("Erreur de connexion : " . $mysqli->connect_error);
-    }
-
     // Récupération des données du formulaire
     $prenom = $_POST['prenom'];
     $nom = $_POST['nom'];
@@ -26,7 +22,7 @@ try {
     $user_id = $_SESSION['user_id'];
 
     // Vérification si l'email existe déjà pour un autre utilisateur
-    $stmt = $mysqli->prepare("SELECT id FROM user WHERE email = ? AND id != ?");
+    $stmt = $conn->prepare("SELECT id FROM user WHERE email = ? AND id != ?");
     $stmt->bind_param("si", $email, $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -45,7 +41,7 @@ try {
     $image_path = null;
     
     // Récupérer l'image actuelle de l'utilisateur
-    $stmt = $mysqli->prepare("SELECT image FROM user WHERE id = ?");
+    $stmt = $conn->prepare("SELECT image FROM user WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['user_id']);
     $stmt->execute();
     $stmt->bind_result($current_image);
@@ -99,7 +95,7 @@ try {
     }
 
     // Mise à jour des informations dans la base de données
-    $stmt = $mysqli->prepare("UPDATE user SET 
+    $stmt = $conn->prepare("UPDATE user SET 
         prenom = ?, 
         nom = ?, 
         genre = ?, 
@@ -113,7 +109,7 @@ try {
 
     // Vérifier si la préparation de la requête a réussi
     if ($stmt === false) {
-        throw new Exception("Erreur de préparation de la requête : " . $mysqli->error);
+        throw new Exception("Erreur de préparation de la requête : " . $conn->error);
     }
 
     $stmt->bind_param("ssssissssi", 
@@ -146,7 +142,6 @@ try {
     }
 
     $stmt->close();
-    $mysqli->close();
 
 } catch (Exception $e) {
     // Afficher les erreurs spécifiques

@@ -1,16 +1,11 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 // Désactiver l'affichage des erreurs
 error_reporting(0);
 ini_set('display_errors', 0);
 
 // get_product_details.php
 header('Content-Type: application/json');
-
-// Connexion à la base de données
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

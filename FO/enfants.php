@@ -1,13 +1,9 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
 // Même logique de récupération des filtres que nouveautes.php, mais uniquement pour la catégorie 'homme'
-$host = 'localhost';
-$dbname = 'stylish';
-$username = 'root';
-$password = '';
+
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("SET NAMES utf8");
 
     // Récupérer les types uniques pour enfant
@@ -577,8 +573,13 @@ $categories = ['enfant'];
       params.set('page', currentPage);
 
       fetch(`get_filtered_enfants.php?${params.toString()}`)
-          .then(response => response.json())
-          .then(data => {
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Erreur HTTP: ${response.status}`);
+              }
+              return response.json();
+           })
+           .then(data => {
               if (data.success) {
                   document.getElementById('product-list-container').innerHTML = `<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">${data.html}</div>`;
                   renderPaginationControls(data.total_pages, data.current_page);
