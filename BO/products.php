@@ -383,8 +383,7 @@ $active_page = 'products';
                     <table class="table table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
-                                <th>Image</th>
+                                <th>Image</th> 
                                 <th>Nom</th>
                                 <th>Marque</th>
                                 <th>Catégorie</th>
@@ -408,7 +407,7 @@ $active_page = 'products';
                             <?php else: ?>
                             <?php foreach ($products as $product): ?>
                             <tr class="product-row" onclick="showProductDetails(<?php echo $product['id']; ?>)" data-couleur="<?php echo htmlspecialchars($product['couleur']); ?>">
-                                <td><?php echo htmlspecialchars($product['id']); ?></td>
+                                
                                 <td>
                                     <?php
                                     $stmt = $pdo->prepare("SELECT URL_Image FROM images_produits WHERE id_produit = ? LIMIT 1");

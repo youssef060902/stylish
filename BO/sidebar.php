@@ -22,6 +22,7 @@ if (!isset($active_page)) {
             </a>
         </li>
         <a class="nav-link <?php echo ($active_page == 'favorites') ? 'active' : ''; ?>" href="favoris.php"><i class="fas fa-heart me-2"></i> Favoris</a>
+        <a class="nav-link <?php echo ($active_page == 'coupons') ? 'active' : ''; ?>" href="coupons.php"><i class="fas fa-ticket-alt me-2"></i> Coupons</a>
 
         <!-- Menu Statistiques -->
         <li class="nav-item">

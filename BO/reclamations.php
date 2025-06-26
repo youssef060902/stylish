@@ -133,7 +133,7 @@ $reclamations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
-                <h2 class="mb-4">Gestion des Réclamations</h2>
+                <h2 class="mb-4">Gestion des Réclamations <span id="reclamations-count" class="badge bg-secondary ms-2"></span></h2>
 
                 <!-- Filtres -->
                 <div class="card mb-4">
@@ -178,7 +178,6 @@ $reclamations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <table class="table table-hover">
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
                                 <th>Utilisateur</th>
                                 <th>Produit</th>
                                 <th>Type</th>
@@ -195,7 +194,6 @@ $reclamations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     data-type="<?php echo $r['type']; ?>"
                                     data-date="<?php echo date('Y-m-d', strtotime($r['date_creation'])); ?>"
                                     data-user-id="<?php echo $r['id_user']; ?>">
-                                    <td><?php echo $r['id']; ?></td>
                                     <td><?php echo htmlspecialchars($r['user_name']); ?></td>
                                     <td><?php echo htmlspecialchars($r['product_name'] ?: '-'); ?></td>
                                     <td><?php echo htmlspecialchars($r['type']); ?></td>
@@ -380,7 +378,23 @@ $reclamations = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         row.style.display = 'none';
                     }
                 });
+
+                updateReclamationsCount();
             });
+        });
+
+        function updateReclamationsCount() {
+            const rows = document.querySelectorAll('#reclamationsTableBody .reclamation-row');
+            let visibleCount = 0;
+            rows.forEach(row => {
+                if (row.style.display !== 'none') visibleCount++;
+            });
+            document.getElementById('reclamations-count').textContent = visibleCount;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateReclamationsCount();
+            // ... autres listeners éventuels
         });
     </script>
 </body>

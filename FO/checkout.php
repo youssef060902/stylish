@@ -77,6 +77,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adresse_livraison']))
                 $stmt->execute([$id_commande, $row['id_produit'], $row['id_pointure'], $row['prix'], $row['quantite']]);
                 $stmt = $pdo->prepare("UPDATE pointure_produit SET stock = stock - ? WHERE id_produit = ? AND id_pointure = ?");
                 $stmt->execute([$row['quantite'], $row['id_produit'], $row['id_pointure']]);
+                // Vérifier si le stock est à 0 ou moins, et supprimer la ligne si c'est le cas
+                $stmt = $pdo->prepare("SELECT stock FROM pointure_produit WHERE id_produit = ? AND id_pointure = ?");
+                $stmt->execute([$row['id_produit'], $row['id_pointure']]);
+                $stockRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($stockRow && $stockRow['stock'] <= 0) {
+                    $stmt = $pdo->prepare("DELETE FROM pointure_produit WHERE id_produit = ? AND id_pointure = ?");
+                    $stmt->execute([$row['id_produit'], $row['id_pointure']]);
+                }
                 // Décrémenter aussi la quantité globale du produit
                 $stmt = $pdo->prepare("UPDATE produit SET quantité = quantité - ? WHERE id = ?");
                 $stmt->execute([$row['quantite'], $row['id_produit']]);

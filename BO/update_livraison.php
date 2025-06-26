@@ -75,7 +75,7 @@ try {
     <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse:collapse;margin-top:20px;margin-bottom:20px;background-color:#fff;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.08);">
         <tr>
             <td align="center" style="padding:40px 0 30px 0;background-color:#000;color:#fff;border-top-left-radius:8px;border-top-right-radius:8px;">
-                <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Stylish Logo" width="150" style="display:block;">
+                <img src="https://i.ibb.co/nNPjZ5fK/Chat-GPT-Image-8-juin-2025-23-27-31.png" alt="Stylish Logo" width="150" style="display:block;">
             </td>
         </tr>
         <tr>

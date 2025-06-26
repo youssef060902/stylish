@@ -1,5 +1,5 @@
 <?php
-
+require_once '../config/database.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -8,6 +8,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php include 'header.php'; ?>
+  <title>Home Page</title>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -766,23 +767,14 @@
       <div class="product-content padding-small">
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
           <?php
-          // Connexion à la base de données
-          $host = 'localhost';
-          $dbname = 'stylish';
-          $username = 'root';
-          $password = '';
-
           try {
-              $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-              $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-              $pdo->exec("SET NAMES utf8");
-
-              // Récupération des produits en promotion
-              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom, 
-                                  (SELECT URL_Image FROM images_produits WHERE id_produit = p.id LIMIT 1) as image_url
+              // Récupération des produits en promotion (requête optimisée)
+              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom, ip.URL_Image as image_url
                                   FROM produit p 
                                   LEFT JOIN promotion pr ON p.id_promotion = pr.id 
+                                  LEFT JOIN images_produits ip ON p.id = ip.id_produit
                                   WHERE p.statut = 'en promotion' 
+                                  GROUP BY p.id
                                   ORDER BY p.id DESC 
                                   LIMIT 5");
               $promo_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -823,7 +815,9 @@
                   <?php
               }
           } catch(PDOException $e) {
-              echo "Erreur : " . $e->getMessage();
+              // Affiche un message d'erreur plus discret ou log l'erreur
+              error_log("Erreur de requête pour les promotions : " . $e->getMessage());
+              echo "<p class='col'>Impossible de charger les produits en promotion pour le moment.</p>";
           }
           ?>
         </div>
@@ -870,22 +864,13 @@
       <div class="product-content padding-small">
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
           <?php
-          // Connexion à la base de données (utiliser les mêmes identifiants que la section promotion)
-          $host = 'localhost';
-          $dbname = 'stylish';
-          $username = 'root';
-          $password = '';
-
           try {
-              $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-              $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-              $pdo->exec("SET NAMES utf8");
-
-              // Récupération des 5 derniers produits ajoutés
-              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom,
-                                  (SELECT URL_Image FROM images_produits WHERE id_produit = p.id LIMIT 1) as image_url
+              // Récupération des 5 derniers produits ajoutés (requête optimisée)
+              $stmt = $pdo->query("SELECT p.*, pr.discount, pr.nom as promotion_nom, ip.URL_Image as image_url
                                   FROM produit p
                                   LEFT JOIN promotion pr ON p.id_promotion = pr.id
+                                  LEFT JOIN images_produits ip ON p.id = ip.id_produit
+                                  GROUP BY p.id
                                   ORDER BY p.date_ajout DESC
                                   LIMIT 5");
               $latest_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -927,7 +912,8 @@
                   <?php
               }
           } catch(PDOException $e) {
-              echo "Erreur : " . $e->getMessage();
+              error_log("Erreur de requête pour les nouveautés : " . $e->getMessage());
+              echo "<p class='col'>Impossible de charger les nouveaux produits pour le moment.</p>";
           }
           ?>
         </div>

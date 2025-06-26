@@ -93,7 +93,7 @@ $favoris = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">Produits Favoris</h2>
+                    <h2 class="mb-0">Produits Favoris <span id="favoris-count" class="badge bg-secondary ms-2"></span></h2>
                     <div class="input-group" style="width: 350px;">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                         <input type="text" id="searchProduct" class="form-control" placeholder="Rechercher par nom de produit...">
@@ -228,6 +228,17 @@ $favoris = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (noResultsRow) {
                 noResultsRow.parentElement.style.display = (visibleCount === 0) ? '' : 'none';
             }
+
+            updateFavorisCount();
+        }
+
+        function updateFavorisCount() {
+            const rows = document.querySelectorAll('#favorisTableBody .product-row');
+            let visibleCount = 0;
+            rows.forEach(row => {
+                if (row.style.display !== 'none') visibleCount++;
+            });
+            document.getElementById('favoris-count').textContent = visibleCount;
         }
 
         // Ajouter un écouteur d'événement pour chaque filtre
@@ -238,6 +249,7 @@ $favoris = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Appliquer les filtres au chargement initial si des valeurs sont déjà sélectionnées (par ex. cache du navigateur)
         filterFavorites();
+        updateFavorisCount();
     });
     </script>
 </body>

@@ -119,7 +119,6 @@ $active_page = 'users';
                         <table class="table table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>ID</th>
                                     <th>Photo</th>
                                     <th>Prénom</th>
                                     <th>Nom</th>
@@ -143,7 +142,6 @@ $active_page = 'users';
                                 <?php else: ?>
                                 <?php foreach ($users as $user): ?>
                                 <tr class="user-row" data-user='<?php echo json_encode($user, JSON_HEX_APOS | JSON_HEX_QUOT); ?>'>
-                                    <td><?php echo htmlspecialchars($user['id']); ?></td>
                                     <td>
                                         <?php
                                         if (!empty($user['image']) && strpos($user['image'], 'http') === 0) {

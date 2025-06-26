@@ -72,7 +72,7 @@ try {
             if ($reclamationInfo) {
                 $userName = htmlspecialchars($reclamationInfo['prenom']);
                 $reclamationId = $id;
-                $logoUrl = 'https://i.ibb.co/vvZBxfg5/logoo.png';
+                $logoUrl = 'https://i.ibb.co/nNPjZ5fK/Chat-GPT-Image-8-juin-2025-23-27-31.png';
 
                 // -- Variables dynamiques selon le statut --
                 $statusColors = [

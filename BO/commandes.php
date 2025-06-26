@@ -48,7 +48,8 @@ $stmt = $pdo->query("
          FROM commande_produit cp JOIN produit p ON cp.id_produit = p.id
          WHERE cp.id_commande = c.id) AS product_categories,
         -- Vérifier s'il y a une réduction (coupon)
-        ( (SELECT SUM(cp.prix_unitaire * cp.quantite) FROM commande_produit cp WHERE cp.id_commande = c.id) + 7.00 - c.total > 0.01 ) AS has_discount
+        ( (SELECT SUM(cp.prix_unitaire * cp.quantite) FROM commande_produit cp WHERE cp.id_commande = c.id) + 7.00 - c.total > 0.01 ) AS has_discount,
+        c.date_livraison
     FROM commande c
     JOIN user u ON c.id_user = u.id
     ORDER BY c.date_commande DESC
@@ -69,7 +70,12 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .user-placeholder { width: 40px; height: 40px; border-radius: 50%; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #495057; }
         .status-badge { font-size: 0.85em; padding: 0.5em 0.8em; border-radius: 0.25rem; }
-        .filter-card { background-color: #f8f9fa; }
+        .status-badge-en-attente { background-color: #ffc107 !important; color: #212529 !important; }
+        .status-badge-confirmé { background-color: #0dcaf0 !important; color: #212529 !important; }
+        .status-badge-en-préparation { background-color: #0d6efd !important; color: #fff !important; }
+        .status-badge-expédié { background-color: #6c757d !important; color: #fff !important; }
+        .status-badge-livré { background-color: #198754 !important; color: #fff !important; }
+        .status-badge-select { border: none; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
@@ -89,9 +95,11 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-4">
+                                <label for="userNameSearch" class="form-label">Nom du client</label>
                                 <input type="text" class="form-control" id="userNameSearch" placeholder="Rechercher par nom de client...">
                             </div>
-                             <div class="col-md-4">
+                            <div class="col-md-4">
+                                <label for="productNameFilter" class="form-label">Produit commandé</label>
                                 <select class="form-select" id="productNameFilter">
                                     <option value="">Tous les produits</option>
                                     <?php foreach ($ordered_products as $product_name): ?>
@@ -100,9 +108,15 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="dateFilter" class="form-label">Date de commande</label>
                                 <input type="date" class="form-control" id="dateFilter">
                             </div>
                             <div class="col-md-4">
+                                <label for="deliveryDateFilter" class="form-label">Date de livraison</label>
+                                <input type="date" class="form-control" id="deliveryDateFilter">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="statusFilter" class="form-label">Statut</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">Tous les statuts</option>
                                     <option value="en attente">En attente</option>
@@ -113,6 +127,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="categoryFilter" class="form-label">Catégorie</label>
                                 <select class="form-select" id="categoryFilter">
                                     <option value="">Toutes les catégories</option>
                                     <?php foreach ($categories as $category): ?>
@@ -121,8 +136,9 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </select>
                             </div>
                             <div class="col-md-4">
+                                <label for="discountFilter" class="form-label">Coupon</label>
                                 <select class="form-select" id="discountFilter">
-                                    <option value="">Tous</option>
+                                    <option value="">Tous(coupon)</option>
                                     <option value="yes">Avec Coupon</option>
                                     <option value="no">Sans Coupon</option>
                                 </select>
@@ -140,8 +156,8 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <tr>
                                         <th>ID</th>
                                         <th>Client</th>
-                                        <th>Date</th>
-                                        <th class="text-end">Total</th>
+                                        <th>Date Commande</th>
+                                        <th class="text-end">Total à payer</th>
                                         <th class="text-center">Statut</th>
                                         <th class="text-center">Actions</th>
                                     </tr>
@@ -156,6 +172,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <tr class="order-row"
                                                 data-user-name="<?php echo htmlspecialchars($order['user_name']); ?>"
                                                 data-date="<?php echo date('Y-m-d', strtotime($order['date_commande'])); ?>"
+                                                data-delivery-date="<?php echo $order['date_livraison'] ? date('Y-m-d', strtotime($order['date_livraison'])) : ''; ?>"
                                                 data-status="<?php echo htmlspecialchars($order['statut']); ?>"
                                                 data-products="<?php echo htmlspecialchars($order['product_names']); ?>"
                                                 data-categories="<?php echo htmlspecialchars($order['product_categories']); ?>"
@@ -174,20 +191,25 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <td><?php echo date('d/m/Y H:i', strtotime($order['date_commande'])); ?></td>
                                                 <td class="text-end"><strong><?php echo number_format($order['total'], 2, ',', ' '); ?> DT</strong></td>
                                                 <td class="text-center">
-                                                    <?php
-                                                        $status_classes = [
-                                                            'en attente' => 'bg-warning text-dark',
-                                                            'confirmé' => 'bg-info text-dark',
-                                                            'en préparation' => 'bg-primary',
-                                                            'livré' => 'bg-success',
-                                                        ];
-                                                        $status_class = $status_classes[$order['statut']] ?? 'bg-secondary';
-                                                    ?>
-                                                    <span class="badge <?php echo $status_class; ?> status-badge"><?php echo ucfirst($order['statut']); ?></span>
+                                                    <select class="form-select form-select-sm statut-select status-badge-select status-badge-<?= str_replace(' ', '-', $order['statut']); ?>" data-id="<?php echo $order['id']; ?>">
+                                                        <option value="en attente" class="bg-warning text-dark" <?php if($order['statut']=='en attente') echo 'selected'; ?>>En attente</option>
+                                                        <option value="confirmé" class="bg-info text-dark" <?php if($order['statut']=='confirmé') echo 'selected'; ?>>Confirmé</option>
+                                                        <option value="en préparation" class="bg-primary text-white" <?php if($order['statut']=='en préparation') echo 'selected'; ?>>En préparation</option>
+                                                        <option value="expédié" class="bg-secondary text-white" <?php if($order['statut']=='expédié') echo 'selected'; ?>>Expédié</option>
+                                                        <option value="livré" class="bg-success text-white" <?php if($order['statut']=='livré') echo 'selected'; ?>>Livré</option>
+                                                    </select>
                                                 </td>
                                                 <td class="text-center">
                                                     <button class="btn btn-sm btn-outline-primary" onclick="showDetails(<?php echo $order['id']; ?>)">
-                                                        <i class="fas fa-eye me-1"></i> Voir
+                                                        <i class="fas fa-eye me-1"></i> 
+                                                    </button>
+                                                    <?php if ($order['statut'] === 'en préparation'): ?>
+                                                        <button class="btn btn-sm btn-warning ms-1" onclick="expedierCommande(<?php echo $order['id']; ?>, this)">
+                                                            <i class="fas fa-truck"></i> 
+                                                        </button>
+                                                    <?php endif; ?>
+                                                    <button class="btn btn-sm btn-danger ms-1" onclick="deleteCommande(<?php echo $order['id']; ?>, this)">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -240,8 +262,8 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <form id="deliveryDateForm">
                         <input type="hidden" id="orderIdForEmail" value="">
                         <div class="mb-3">
-                            <label for="deliveryDateInput" class="form-label">Veuillez sélectionner une date de livraison :</label>
-                            <input type="date" class="form-control" id="deliveryDateInput" required>
+                            <label for="deliveryDateInput" class="form-label">Veuillez sélectionner une date et une heure de livraison :</label>
+                            <input type="datetime-local" class="form-control" id="deliveryDateInput" required>
                         </div>
                     </form>
                 </div>
@@ -261,6 +283,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 userName: document.getElementById('userNameSearch'),
                 productName: document.getElementById('productNameFilter'),
                 date: document.getElementById('dateFilter'),
+                deliveryDate: document.getElementById('deliveryDateFilter'),
                 status: document.getElementById('statusFilter'),
                 category: document.getElementById('categoryFilter'),
                 discount: document.getElementById('discountFilter')
@@ -270,6 +293,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 const userNameValue = filters.userName.value.toLowerCase();
                 const productNameValue = filters.productName.value.toLowerCase();
                 const dateValue = filters.date.value;
+                const deliveryDateValue = filters.deliveryDate.value;
                 const statusValue = filters.status.value;
                 const categoryValue = filters.category.value;
                 const discountValue = filters.discount.value;
@@ -280,6 +304,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 rows.forEach(row => {
                     const rowUserName = row.dataset.userName.toLowerCase();
                     const rowDate = row.dataset.date;
+                    const rowDeliveryDate = row.dataset.deliveryDate || '';
                     const rowStatus = row.dataset.status;
                     const rowDiscount = row.dataset.discount;
                     const rowProducts = row.dataset.products.toLowerCase();
@@ -288,11 +313,12 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     const userNameMatch = !userNameValue || rowUserName.includes(userNameValue);
                     const productNameMatch = !productNameValue || rowProducts.split('|||').includes(productNameValue.trim());
                     const dateMatch = !dateValue || rowDate === dateValue;
+                    const deliveryDateMatch = !deliveryDateValue || rowDeliveryDate === deliveryDateValue;
                     const statusMatch = !statusValue || rowStatus === statusValue;
                     const categoryMatch = !categoryValue || (rowCategories && rowCategories.split('|||').includes(categoryValue));
                     const discountMatch = !discountValue || rowDiscount === discountValue;
 
-                    if (userNameMatch && productNameMatch && dateMatch && statusMatch && categoryMatch && discountMatch) {
+                    if (userNameMatch && productNameMatch && dateMatch && deliveryDateMatch && statusMatch && categoryMatch && discountMatch) {
                         row.style.display = '';
                         visibleCount++;
                     } else {
@@ -357,7 +383,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'Veuillez sélectionner une date de livraison.',
+                    text: 'Veuillez sélectionner une date et une heure de livraison.',
                 });
                 return;
             }
@@ -447,6 +473,151 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     btn.innerHTML = originalBtn;
                 });
                 return;
+            }
+        });
+
+        function expedierCommande(orderId, btn) {
+            Swal.fire({
+                title: 'Êtes-vous sûr de vouloir expédier cette commande ?',
+                text: 'Cette action est irréversible.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Oui, expédier',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Expédition...';
+
+                    fetch('expedier_commande.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'id=' + encodeURIComponent(orderId)
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Commande expédiée',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: data.message || 'Une erreur est survenue.'
+                            });
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-truck"></i> Expédier';
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: 'Erreur de communication avec le serveur.'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-truck"></i> Expédier';
+                    });
+                }
+            });
+        }
+
+        function deleteCommande(orderId, btn) {
+            Swal.fire({
+                title: 'Supprimer la commande ?',
+                text: 'Cette action est irréversible. Voulez-vous vraiment supprimer cette commande ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Suppression...';
+
+                    fetch('delete_commande.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'id=' + encodeURIComponent(orderId)
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Commande supprimée',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: data.message || 'Une erreur est survenue.'
+                            });
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-trash"></i> Supprimer';
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: 'Erreur de communication avec le serveur.'
+                        });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-trash"></i> Supprimer';
+                    });
+                }
+            });
+        }
+
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('statut-select')) {
+                const orderId = e.target.getAttribute('data-id');
+                const newStatus = e.target.value;
+                // Mettre à jour la classe couleur du select
+                e.target.className = 'form-select form-select-sm statut-select status-badge-select status-badge-' + newStatus.replace(/ /g, '-');
+                fetch('update_commande_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'id=' + encodeURIComponent(orderId) + '&statut=' + encodeURIComponent(newStatus)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Statut mis à jour',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: data.message || 'Une erreur est survenue.'
+                        });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erreur',
+                        text: 'Erreur de communication avec le serveur.'
+                    });
+                });
             }
         });
     </script>

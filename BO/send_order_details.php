@@ -25,14 +25,18 @@ if (!isset($_POST['id']) || !isset($_POST['date_livraison']) || empty($_POST['da
 }
 
 $order_id = $_POST['id'];
-$date_livraison_str = $_POST['date_livraison'];
-
-// Validation de la date
-$delivery_date = DateTime::createFromFormat('Y-m-d', $date_livraison_str);
-if (!$delivery_date || $delivery_date->format('Y-m-d') !== $date_livraison_str) {
-    $response['message'] = 'Format de date de livraison invalide. Utilisez AAAA-MM-JJ.';
-    echo json_encode($response);
-    exit();
+$date_livraison = $_POST['date_livraison'] ?? null;
+if ($date_livraison) {
+    // Remplacer le T par un espace pour le format SQL
+    $date_livraison = str_replace('T', ' ', $date_livraison);
+    // Optionnel : vérifier le format
+    $dt = DateTime::createFromFormat('Y-m-d H:i', $date_livraison);
+    if (!$dt) {
+        // Format invalide
+        // Gérer l'erreur ici
+    } else {
+        // $dt->format('Y-m-d H:i:s') pour l'enregistrement SQL
+    }
 }
 
 try {
@@ -59,7 +63,7 @@ try {
 
     // Mise à jour du statut de la commande et de la date de livraison
     $stmt_update = $pdo->prepare("UPDATE commande SET statut = 'en préparation', date_livraison = :date_livraison WHERE id = :id");
-    $stmt_update->execute(['id' => $order_id, 'date_livraison' => $date_livraison_str]);
+    $stmt_update->execute(['id' => $order_id, 'date_livraison' => $date_livraison]);
 
     // --- Calculs des totaux (avec gestion des réductions) ---
     $subtotal = 0;
@@ -84,7 +88,7 @@ try {
     $pdf->SetTextColor(40, 40, 40);
 
     // Contenu HTML pour le PDF
-    $logoUrl = 'https://i.ibb.co/vvZBxfg5/logoo.png';
+    $logoUrl = 'https://i.ibb.co/nNPjZ5fK/Chat-GPT-Image-8-juin-2025-23-27-31.png';
     $html = '
 <style>
     body { font-family: helvetica, sans-serif; font-size: 10pt; color: #282828; }
@@ -134,7 +138,7 @@ try {
              <td colspan="2" style="padding-top:20px; text-align:right;">
                 <strong>Facture N° :</strong> ' . $order['id'] . '<br>
                 <strong>Date de commande :</strong> ' . date('d/m/Y', strtotime($order['date_commande'])) . '<br>
-                <strong>Date de livraison estimée :</strong> ' . date('d/m/Y', strtotime($date_livraison_str)) . '
+                <strong>Date de livraison estimée :</strong> ' . date('d/m/Y', strtotime($date_livraison)) . '
             </td>
         </tr>
     </table>
@@ -233,14 +237,14 @@ try {
     <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
         <tr>
             <td align="center" style="padding: 40px 0 30px 0; background-color: #000000; color: #ffffff; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-                <img src="https://i.ibb.co/vvZBxfg5/logoo.png" alt="Stylish Logo" width="150" style="display: block;">
+                <img src="https://i.ibb.co/nNPjZ5fK/Chat-GPT-Image-8-juin-2025-23-27-31.png" alt="Stylish Logo" width="150" style="display: block;">
             </td>
         </tr>
         <tr>
             <td style="padding: 40px 30px;">
                 <h1 style="font-size: 24px; margin: 0; margin-bottom: 20px;">Bonjour ' . htmlspecialchars($order['prenom']) . ',</h1>
                 <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 1.5;">Bonne nouvelle ! Votre commande <strong>#' . $order_id . '</strong> est maintenant en cours de préparation.</p>
-                <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.5;">Nous estimons sa livraison pour le <strong>' . date('d/m/Y', strtotime($date_livraison_str)) . '</strong>. Vous recevrez une notification dès qu\'elle sera expédiée.</p>
+                <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.5;">Nous estimons sa livraison pour le <strong>' . date('d/m/Y', strtotime($date_livraison)) . '</strong>. Vous recevrez une notification dès qu\'elle sera expédiée.</p>
                 <p style="margin: 0; font-size: 16px; line-height: 1.5;">Vous trouverez en pièce jointe la facture détaillée de votre achat.</p>
             </td>
         </tr>

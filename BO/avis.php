@@ -62,7 +62,7 @@ $reviewing_users = $stmt_users->fetchAll(PDO::FETCH_ASSOC);
 
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Gestion des Avis</h1>
+                <h1 class="h2">Gestion des Avis <span id="avis-count" class="badge bg-secondary ms-2"></span></h1>
             </div>
 
             <!-- Filtres -->
@@ -224,6 +224,7 @@ $reviewing_users = $stmt_users->fetchAll(PDO::FETCH_ASSOC);
 
     // Logique des filtres
     document.addEventListener('DOMContentLoaded', function() {
+        updateAvisCount();
         document.querySelectorAll('.filter-control').forEach(el => {
             el.addEventListener('change', applyFilters);
         });
@@ -247,11 +248,21 @@ $reviewing_users = $stmt_users->fetchAll(PDO::FETCH_ASSOC);
             })
             .then(html => {
                 tableBody.innerHTML = html;
+                updateAvisCount();
             })
             .catch(error => {
                 console.error('Erreur lors du filtrage:', error);
                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center alert alert-danger">Erreur de chargement des résultats.</td></tr>';
             });
+    }
+
+    function updateAvisCount() {
+        const rows = document.querySelectorAll('tbody tr[id^="product-row-"]');
+        let visibleCount = 0;
+        rows.forEach(row => {
+            if (row.style.display !== 'none') visibleCount++;
+        });
+        document.getElementById('avis-count').textContent = visibleCount;
     }
 </script>
 </body>
