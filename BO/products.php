@@ -406,7 +406,7 @@ $active_page = 'products';
                             </tr>
                             <?php else: ?>
                             <?php foreach ($products as $product): ?>
-                            <tr class="product-row" onclick="showProductDetails(<?php echo $product['id']; ?>)" data-couleur="<?php echo htmlspecialchars($product['couleur']); ?>">
+                            <tr class="product-row" onclick="showProductDetails(<?php echo $product['id']; ?>)" data-couleur="<?php echo htmlspecialchars($product['couleur']); ?>" data-product-id="<?php echo $product['id']; ?>">
                                 
                                 <td>
                                     <?php
@@ -782,12 +782,12 @@ $active_page = 'products';
             // Fonction pour appliquer tous les filtres sauf pointure
             function applyFiltersExceptPointure() {
                 rows.forEach(row => {
-                    const nom = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                    const marque = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-                    const categorie = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-                    const type = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
-                    const prix = parseFloat(row.querySelector('td:nth-child(7)').textContent);
-                    const statut = row.querySelector('td:nth-child(9) .status-badge').textContent.trim().toLowerCase();
+                    const nom = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const marque = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const categorie = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                    const type = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+                    const prix = parseFloat(row.querySelector('td:nth-child(6)').textContent);
+                    const statut = row.querySelector('td:nth-child(8) .status-badge').textContent.trim().toLowerCase();
                     const couleur = row.getAttribute('data-couleur').toLowerCase();
 
                     const matchesFilters = 
@@ -822,7 +822,7 @@ $active_page = 'products';
                             // Appliquer le filtre de pointure
                             rows.forEach(row => {
                                 if (row.style.display !== 'none') {
-                                    const productId = row.querySelector('td:first-child').textContent;
+                                    const productId = row.getAttribute('data-product-id');
                                     if (!productsWithPointure[productId]) {
                                         row.style.display = 'none';
                                     }
@@ -830,13 +830,13 @@ $active_page = 'products';
                             });
 
                             // Mettre à jour le compteur
-                            visibleCount = document.querySelectorAll('.product-row[style=""]').length;
+                            visibleCount = Array.from(document.querySelectorAll('.product-row')).filter(row => row.style.display !== 'none').length;
                             document.getElementById('product-count').textContent = visibleCount;
                         }
                     });
             } else {
                 // Si pas de filtre de pointure, mettre à jour le compteur
-                visibleCount = document.querySelectorAll('.product-row[style=""]').length;
+                visibleCount = Array.from(document.querySelectorAll('.product-row')).filter(row => row.style.display !== 'none').length;
                 document.getElementById('product-count').textContent = visibleCount;
             }
         }
