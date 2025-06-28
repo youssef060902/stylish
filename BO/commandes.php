@@ -211,6 +211,11 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                     <button class="btn btn-sm btn-danger ms-1" onclick="deleteCommande(<?php echo $order['id']; ?>, this)">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
+                                                    <?php if ($order['statut'] == 'expédié'): ?>
+                                                        <a href="livrer_commande.php?id=<?php echo $order['id']; ?>" title="Marquer comme livré">
+                                                            <i class="fa fa-truck" style="color:green;font-size:1.3em;cursor:pointer;"></i>
+                                                        </a>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
